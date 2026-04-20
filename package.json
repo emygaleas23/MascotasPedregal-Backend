@@ -13,19 +13,30 @@
     "@stripe/stripe-js": "^8.6.4",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
-    "cloudinary": "^2.8.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "cloudinary": "^2.9.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
-    "fs-extra": "^11.3.2",
-    "jsonwebtoken": "^9.0.2",
+    "fs-extra": "^11.3.4",
+    "jsonwebtoken": "^9.0.3",
     "module-alias": "^2.2.3",
-    "mongoose": "^8.20.0",
-    "nodemailer": "^7.0.10",
+    "mongoose": "^8.23.0",
+    "nodemailer": "^7.0.13",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "socket.io": "^4.8.1",
+    "socket.io": "^4.8.3",
     "stripe": "^19.3.1"
-  }
+  },
+  "description": "DESARROLLO DE UN BACKEND PARA LA GESTIÓN Y OFERTA DE SERVICIOS PARA MASCOTAS EN EL CONJUNTO HABITACIONAL “EL PEDREGAL”",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emygaleas23/MascotasPedregal-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/emygaleas23/MascotasPedregal-Backend/issues"
+  },
+  "homepage": "https://github.com/emygaleas23/MascotasPedregal-Backend#readme"
 }
