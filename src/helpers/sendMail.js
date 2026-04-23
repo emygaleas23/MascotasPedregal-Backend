@@ -1,4 +1,4 @@
-import sendMail from "../config/nodemailer";
+import sendMail from "../config/nodemailer.js";
 
 // Email para cuando un usuario se registra, se le envía un correo de confirmación con un token para verificar su cuenta.
 const sendMailToRegister = (userMail, token)=>{

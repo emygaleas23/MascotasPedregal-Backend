@@ -1,6 +1,6 @@
-import Usuario from "../../models/usuarios/Usuario";
-import { createToken } from "../../middlewares/JWT";
-import { sendMailToRegister } from "../../helpers/sendMail";
+import Usuario from "../../models/usuarios/Usuario.js";
+import { createToken } from "../../middlewares/JWT.js";
+import { sendMailToRegister } from "../../helpers/sendMail.js";
 
 // REGISTRO DE USUARIO: 
 
