@@ -70,6 +70,7 @@ const registrarUsuario = async (req, res) => {
     }
 };
 
+// CONFIRMAR EMAIL
 const confirmarEmail = async (req, res) => {
     try {
         const { token } = req.params;
@@ -90,4 +91,54 @@ const confirmarEmail = async (req, res) => {
     }
 };
 
-export { registrarUsuario, confirmarEmail };
+// LOGIN
+
+const loginUsuario = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ msg: "Email y contraseña son obligatorios" });
+        }
+
+        const emailLower = email.toLowerCase().trim();
+        const emailRegex = /\S+@\S+\.\S+/;
+        if (!emailRegex.test(emailLower)) {
+            return res.status(400).json({ msg: "El email no es válido" });
+        }
+
+        const usuario = await Usuario.findOne({ email: emailLower }).select("+password");
+        if (!usuario) {
+            return res.status(400).json({ msg: "Usuario no encontrado" });
+        }
+
+        if (!usuario.verificado) {
+            return res.status(403).json({ msg: "Cuenta no verificada. Revisa tu correo para confirmar tu cuenta." });
+        }
+
+        const verificarPassword = await usuario.matchPassword(password);
+        if (!verificarPassword) {
+            return res.status(400).json({ msg: "Contraseña incorrecta." });
+        }
+
+        const {nombre, apellido, rol, telefono, _id} = usuario;
+
+        const token = createToken(
+            usuario._id.toString()
+        )
+
+        res.status(200).json({
+            msg: "Inicio de sesión exitoso",
+            token,
+            rol,
+            nombre,
+            apellido,
+            telefono,
+            _id,
+            email: usuario.email
+        });
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};
+
+export { registrarUsuario, confirmarEmail, loginUsuario };
