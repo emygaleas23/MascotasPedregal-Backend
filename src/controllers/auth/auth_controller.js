@@ -1,6 +1,6 @@
 import Usuario from "../../models/usuarios/Usuario.js";
 import { createToken } from "../../middlewares/JWT.js";
-import { sendMailToRegister } from "../../helpers/sendMail.js";
+import { sendMailToRecoverPassword, sendMailToRegister } from "../../helpers/sendMail.js";
 
 // REGISTRO DE USUARIO: 
 
@@ -66,7 +66,7 @@ const registrarUsuario = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({ msg: `Error en el servidor - ${error}` });
     }
 };
 
@@ -137,8 +137,84 @@ const loginUsuario = async (req, res) => {
             email: usuario.email
         });
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({ msg: `Error en el servidor - ${error}` });
     }
 };
 
-export { registrarUsuario, confirmarEmail, loginUsuario };
+// REESTABLECER CONTRASEÑA
+const reestablecerPassword = async (req, res) => {
+    try{
+        const {email} = req.body;
+
+        if (!email){
+            return res.status(400).json({msg: "Debes ingresar un correo electrónico"})
+        }
+
+        const emailRegex = /\S+@\S+\.\S+/;
+        if (!emailRegex.test(email.toLowerCase().trim())){
+            return res.status(400).json({msg: "El correo electrónico no es válido"})
+        }
+
+        const usuario = await Usuario.findOne({email:email.toLowerCase()})
+
+        if (!usuario) return res.status(400).json({ msg: "El ususario no se encuentra registrado"});
+
+        const token = usuario.createToken();
+        usuario.token = token;
+
+        await sendMailToRecoverPassword(email,token)
+        await usuario.save();
+
+        res.status(200).json({msg:"Revisa tu correo para reestablecer tu contraseña."})
+    } catch(error){
+        console.error(error)
+        res.status(500).json({msg: `Error en el servidor - ${error}`})
+    }
+}
+
+// COMPROBAR EL TOKEN PARA REESTABLECER CONTRASEÑA
+
+const comprobarTokenPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        const usuario = await Usuario.findOne({ token });
+        if (usuario?.token !== token)
+        return res.status(404).json({ msg: "Lo sentimos, no se puede validar la cuenta" });
+
+        res.status(200).json({ msg: "Cuenta confirmado, ya puedes crear tu nueva contraseña" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: ` Error en el servidor ${error}` });
+    }
+};
+
+// CREAR NUEVA CONTRASEÑA
+const crearNuevoPassword = async (req, res) => {
+    try {
+        const { password, nuevopassword } = req.body;
+        const { token } = req.params;
+
+        if (!password || !nuevopassword){
+            return res.status(400).json({msg:"Todos los campos son obligatorios"})
+        }
+
+        if (password !== nuevopassword)
+            return res.status(404).json({ msg: "Las contraseñas no coinciden" });
+        
+        const usuario = await Usuario.findOne({ token });
+        if (!usuario) return res.status(404).json({ msg: "No se puede validar la cuenta" });
+
+        usuario.token = null;
+        usuario.password = await usuario.encryptPassword(password);
+        await usuario.save();
+
+        res.status(200).json({msg: "Ya puedes iniciar sesión en tu cuenta."});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: `Error en el servidor - ${error}` });
+    }
+};
+
+export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword };

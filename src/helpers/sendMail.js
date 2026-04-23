@@ -9,7 +9,7 @@ const sendMailToRegister = (userMail, token)=>{
             <h1>Confirma tu cuenta</h1>
             <p>Hola 👋, gracias por unirte a <strong>PetConnect </strong>.</p>
             <p>Haz clic en el siguiente enlace para confirmar tu cuenta y empezar a disfrutar de todas las funciones:</p>
-            <a href="${process.env.URL_FRONTEND}/confirm-email/${token}">
+            <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
                 Confirmar mi cuenta
             </a>
             <hr>
@@ -27,7 +27,7 @@ const sendMailToRegisterUser = (userMail, token)=>{
         <h1>Confirma tu cuenta</h1>
         <p>Hola 👋, has sido registrado por un administrador en <strong>PetConnect </strong>.</p>
         <p>Haz clic en el siguiente enlace para confirmar tu cuenta y empezar a disfrutar de todas las funciones:</p>
-        <a href="${process.env.URL_FRONTEND}/confirm-email/${token}">
+        <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
             Confirmar mi cuenta
         </a>
         <p>Estas son tus credenciales de acceso:</p>
@@ -41,4 +41,21 @@ const sendMailToRegisterUser = (userMail, token)=>{
     )
 }
 
-export { sendMailToRegister, sendMailToRegisterUser }
+// Email para reestablecer contraseña
+const sendMailToRecoverPassword = (userMail,token)=>{
+    return sendMail(
+        userMail,
+        "Reestablece tu contraseña",
+        `
+            <h1>PetConnect - 🐶 😺</h1>
+            <p>Has solicitado restablecer tu contraseña.</p>
+            <a href="${process.env.URL_FRONTEND}reset/${token}">
+            Clic para restablecer tu contraseña
+            </a>
+            <hr>
+            <footer>El equipo de PetConnect te da la más cordial bienvenida.</footer>
+        `
+    )
+}
+
+export { sendMailToRegister, sendMailToRegisterUser, sendMailToRecoverPassword}
