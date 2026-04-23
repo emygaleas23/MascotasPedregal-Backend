@@ -17,17 +17,20 @@ const cuidadorSchema = new Schema({
     },
     tarifa_hora: {
         type: Number,
-        trim: true
+        required: true,
     },
     servicios_ofrecidos: [String],
     horario_disponible: {
-        dias: [{
+        dia: [{
             type: String,
             enum: ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"]
         }],
-        hora_desde: {type: String, trim: true},
-        hora_hasta: {type: String, trim: true},
+        hora_desde: String,
+        hora_hasta: String,
     }
-}, { _id: false });
+},
+{
+    timestamps: true
+});
 
 export default model("Cuidador", cuidadorSchema);

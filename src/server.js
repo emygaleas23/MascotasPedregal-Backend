@@ -3,6 +3,9 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors';
 
+// Importar rutas de autenticación
+import authRoutes from "./routers/auth/auth_routes.js";
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -16,6 +19,11 @@ app.use(express.json())
 
 // Rutas 
 app.get('/',(req,res)=> res.send("Server on"))
+app.use("/api/auth", authRoutes);
 
+// Manejo de una ruta no encontrada
+app.use((req, res) => {
+    res.status(404).json({ msg: "Ruta no encontrada" });
+});
 
 export default  app

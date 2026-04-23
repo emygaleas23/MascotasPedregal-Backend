@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import {Schema, model} from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { match } from "assert";
 
-const usuarioSchema = new mongoose.Schema({
+const usuarioSchema = new Schema({
     // Rol del usuario: ADMINISTRADOR, DUEÑO o CUIDADOR
     rol:{
         type:String,
@@ -13,7 +14,10 @@ const usuarioSchema = new mongoose.Schema({
     email:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
+        lowercase:true,
+        trim:true,
+        match: [/\S+@\S+\.\S+/, "El email no es válido"] // Validación de formato de email
     },
     // Google ID del usuario, debe ser único (inicio de sesión con Google)
     googleId:{
@@ -29,7 +33,8 @@ const usuarioSchema = new mongoose.Schema({
     // Contraseña del usuario, se encripta antes de guardarla
     password:{
         type:String,
-        required:true
+        required:function() { return !this.googleId }, // Requerida solo si no hay googleId
+        trim:true
     },
     // Token que permite: verificación de email, recuperación de contraseña, etc. Se genera con crypto y se guarda en la base de datos
     token:{
@@ -44,38 +49,36 @@ const usuarioSchema = new mongoose.Schema({
         required:true
     },
     // Información personal del usuario
-    informacionPersonal:{
-        nombre:{
-            type:String,
-            required:true,
-            trim:true
-        },
-        apellido:{
-            type:String,
-            required:true,
-            trim:true
-        },
-        telefono:{
-            type:String,
-            required:true,
-            trim:true,
-            unique:true,
-        },
-        fechaNacimiento:{
-            type:Date
-        },
-        avatar_url:{
-            type:String,
-            trim:true
-        },
-    }
+    nombre:{
+        type:String,
+        required:true,
+        trim:true
+    },
+    apellido:{
+        type:String,
+        required:true,
+        trim:true
+    },
+    telefono:{
+        type:String,
+        required:true,
+        trim:true,
+        unique:true,
+    },
+    fechaNacimiento:{
+        type:Date
+    },
+    avatar_url:{
+        type:String,
+        trim:true
+    },
 },{
     timestamps:true
 })
 
 // Hash antes de guardar el usuario, se encripta la contraseña
 usuarioSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
+    if (!this.isModified("password") || !this.password) return next(); // Si la contraseña no ha sido modificada o no existe, continúa sin hacer nada
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
