@@ -11,6 +11,7 @@ const connection = async () => {
         console.log(`Conexión a la base de datos exitosa en "${connection.host} - ${connection.port}"`)
     } catch (error) {
         console.log("Error al conectar a la base de datos:", error)
+        process.exit(1)
     }
 }
 

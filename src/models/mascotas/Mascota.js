@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-const Mascota = new Schema(
+const mascotaSchema = new Schema(
     {
         owner_id:{
             type: Schema.Types.ObjectId,
@@ -45,3 +45,5 @@ const Mascota = new Schema(
         timestamps:true
     }
 )
+
+export default model("Mascota", mascotaSchema)
