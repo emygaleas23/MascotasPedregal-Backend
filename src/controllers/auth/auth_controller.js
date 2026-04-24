@@ -207,19 +207,19 @@ const comprobarTokenPassword = async (req, res) => {
 // CREAR NUEVA CONTRASEÑA
 const crearNuevoPassword = async (req, res) => {
     try {
-        const { password, nuevopassword } = req.body;
+        const { password, confirmpassword } = req.body;
         const { token } = req.params;
 
-        if (!password || !nuevopassword){
+        if (!password || !confirmpassword){
             return res.status(400).json({msg:"Todos los campos son obligatorios"})
         }
 
-        if (password !== nuevopassword)
+        if (password !== confirmpassword)
             return res.status(404).json({ msg: "Las contraseñas no coinciden" });
 
         // Validación contraseña
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;
-        if (!passwordRegex.test(password) && !passwordRegex.test(nuevopassword)) {
+        if (!passwordRegex.test(password) && !passwordRegex.test(confirmpassword)) {
             return res.status(400).json({ msg: "La contraseña debe tener al menos 16 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales" });
         }
         
@@ -363,4 +363,40 @@ const actualizarFotoPerfil = async (req, res) => {
     }
 };
 
-export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil, actualizarPerfil, actualizarFotoPerfil};
+// ACTUALIZAR CONTRASEÑA
+const actualizarPassword = async (req, res) => {
+    try {
+        const { passwordactual, passwordnuevo } = req.body;
+        const {id} = req.usuario;
+
+        const usuario = await Usuario.findById(id)
+
+        if(!usuario){
+            return res.status(404).json({msg:`Lo sentimos, no existe el usuario ${id}`})
+        }
+
+        if(!passwordactual || !passwordnuevo){
+            return res.status(404).json({msg:`Debes ingresar todos los campos`})
+        }
+
+        const verificarPassword = await usuario.matchPassword(req.body.passwordactual)
+
+        if (!verificarPassword) return res.status(404).json({msg: `Lo sentimos, la contraseña actual no es correcta`})
+
+        // Validación contraseña
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;
+        if (!passwordRegex.test(passwordnuevo)) {
+            return res.status(400).json({ msg: "La contraseña debe tener al menos 16 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales" });
+        }
+
+        usuario.password = passwordnuevo;
+
+        await usuario.save()
+        res.status(200).json({msg: "Se ha actualizado la contraseña correctamente."});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: `Error en el servidor - ${error}` });
+    }
+};
+
+export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil, actualizarPerfil, actualizarFotoPerfil, actualizarPassword};
