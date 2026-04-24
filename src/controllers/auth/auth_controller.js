@@ -1,9 +1,14 @@
 import Usuario from "../../models/usuarios/Usuario.js";
 import { createToken } from "../../middlewares/JWT.js";
 import { sendMailToRecoverPassword, sendMailToRegister } from "../../helpers/sendMail.js";
+import Cuidador from "../../models/usuarios/Cuidador.js";
+import mongoose from "mongoose";
+
+import { subirBase64Cloudinary } from "../../helpers/uploadCloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs-extra";
 
 // REGISTRO DE USUARIO: 
-
 const registrarUsuario = async (req, res) => {
     try {
         const { email, password, rol, nombre, apellido, telefono } = req.body;
@@ -60,7 +65,16 @@ const registrarUsuario = async (req, res) => {
 
         nuevoUsuario.verificado = false; // El usuario no está verificado hasta que confirme su email
 
-        await nuevoUsuario.save(); 
+        const usuarioGuardado = await nuevoUsuario.save();
+        if(usuarioGuardado.rol === "CUIDADOR"){
+            const perfilCuidador = new Cuidador({
+                usuario: usuarioGuardado._id,
+                tarifa_hora:0,
+                servicios_ofrecidos: [],
+                biografia: "",
+            })
+            await perfilCuidador.save()
+        }
         await sendMailToRegister(email, token); // Enviar email de confirmación
 
         res.status(201).json({
@@ -224,7 +238,6 @@ const crearNuevoPassword = async (req, res) => {
 };
 
 // DETALLES PERFIL USUARIO
-
 const detallesPerfil = async (req, res) => {
     try{
         res.status(200).json(req.usuario)
@@ -232,4 +245,122 @@ const detallesPerfil = async (req, res) => {
         res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
-export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil };
+
+// ACTUALIZAR PERFIL INFORMACIÓN PERSONAL
+const actualizarPerfil = async (req, res) =>{
+    try{
+        const{id}=req.params;
+        
+        if(!mongoose.Types.ObjectId.isValid(id)){
+            return res.status(400).json({msg: "ID de usuario no válido"})
+        }
+        
+        const usuario = await Usuario.findById(id);
+        if(!usuario){
+            return res.status(404).json({msg: "Usuario no encontrado"})
+        }
+
+        if(!req.body || Object.keys(req.body).length === 0){
+            return res.status(400).json({msg: "No se han enviado datos para actualizar."})
+        }
+
+        const {nombre, apellido, email, telefono, fechaNacimiento} = req.body;
+
+        if (nombre) usuario.nombre = nombre.trim();
+        if (apellido) usuario.apellido = apellido.trim();
+
+        if (email && usuario.email !== email.toLowerCase().trim()) {
+            const emailRegex= /\S+@\S+\.\S+/;
+            const emailLower = email.toLowerCase().trim();
+            if (!emailRegex.test(emailLower)){
+                return res.status(400).json({msg: "El email no es válido"})
+            }
+            const emailExistente = await Usuario.findOne({ email: emailLower });
+            if (emailExistente) {
+                return res.status(404).json({ msg: `El email ya se encuentra registrado` });
+            }
+            usuario.email = emailLower;
+        }
+
+        if (telefono && telefono !== usuario.telefono){
+            const telefonoRegex = /^\d{10}$/;
+            const telefonoTrim = telefono.trim();
+            if (!telefonoRegex.test(telefonoTrim)) {
+                return res.status(400).json({ msg: "El teléfono no es válido, debe contener solo números y tener 10 dígitos" });
+            }
+
+            const existeTelefono = await Usuario.findOne({telefono: telefonoTrim});
+            if (existeTelefono){
+                return res.status(400).json({ msg: "Este número de teléfono ya está en uso por otro usuario." });
+            }
+            usuario.telefono = telefonoTrim;
+        }
+        if (fechaNacimiento){
+            const fecha = new Date(fechaNacimiento);
+            const hoy = new Date();
+            const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!fechaRegex.test(fechaNacimiento)){
+                return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
+            }
+            if(fecha>hoy){
+                return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+            }
+            usuario.fechaNacimiento = fechaNacimiento;
+        }
+
+        // GUARDAR CAMBIOS
+        await usuario.save();
+
+        res.status(200).json({
+            msg: "Perfil actualizado correctamente",
+            usuario: {
+                nombre: usuario.nombre,
+                apellido: usuario.apellido,
+                email: usuario.email,
+                telefono: usuario.telefono,
+                fechaNacimiento: usuario.fechaNacimiento,
+                rol: usuario.rol,
+            }
+        });
+
+    }catch(error){
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
+    }
+}
+
+// AGREGAR O ACTUALIZAR FOTO DE PERFIL
+const actualizarFotoPerfil = async (req, res) => {
+    try {
+        const{id}= req.params;
+        // Validar ID
+        if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(404).json({msg:`ID inválido ${id}`})
+
+        // Validara que venga una imagen o un base64
+        if (!req.files?.imagen || !req.files?.imagen) {
+            return res.status(400).json({ msg: "No se ha proporcionado ninguna imagen" });
+        }
+
+        // Validar que el usuario exista
+        const usuario = await Usuario.findById(id);
+        if (!usuario) return res.status(404).json({ msg: "Usuario no encontrado" });
+
+        // Subir a Cloudinary
+        const cloudiResponse = await cloudinary.uploader.upload(req.files.imagen.tempFilePath, { 
+            folder: "Avatares-Usuarios" 
+        });
+
+        usuario.avatar_url = cloudiResponse.secure_url;
+
+        await usuario.save();
+
+        await fs.unlink(req.files.imagen.tempFilePath);
+
+        res.status(200).json({ msg:"Foto de perfil actualizada correctamente", avatar_url: usuario.avatar_url});
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Error al subir la imagen" });
+    }
+};
+
+export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil, actualizarPerfil, actualizarFotoPerfil};
