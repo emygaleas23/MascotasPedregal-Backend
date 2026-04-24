@@ -33,7 +33,7 @@ cloudinary.config({
 app.use(express.json())
 app.use(fileUpload({
     useTempFiles:true,
-    tempFileDir:'./uploads',
+    tempFileDir:'../uploads',
 }))
 
 // Rutas 
