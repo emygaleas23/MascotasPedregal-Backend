@@ -16,10 +16,15 @@ const verifyToken = async (req, res, next) => {
     
     try{
         const token = authorization.split(" ")[1]
-        const { id, rol, email } = jwt.verify(token, process.env.JWT_SECRET)
+        const {id} = jwt.verify(token, process.env.JWT_SECRET)
 
         const usuario = await Usuario.findById(id).select("-password -token -createdAt -updatedAt -__v") // Buscar el usuario por ID y excluir campos sensibles
         if (!usuario) return res.status(401).json({msg: "Usuario no encontrado"})
+
+        // Validacion de estado
+        if (usuario.estado === false){
+          return res.status(403).json({msg:"Acceso denegado: Tu cuenta ha sido desactivada por un administrador."})
+        }
 
         req.usuario = usuario // Guardar el usuario en la solicitud para usarlo en los controladores
         next()
