@@ -33,8 +33,9 @@ cloudinary.config({
 app.use(express.json())
 app.use(fileUpload({
     useTempFiles:true,
-    tempFileDir:'../uploads',
-}))
+    tempFileDir:'/tmp/',
+    createParentPath:true
+}));
 
 // Rutas 
 app.get('/',(req,res)=> res.send("Server on"))
