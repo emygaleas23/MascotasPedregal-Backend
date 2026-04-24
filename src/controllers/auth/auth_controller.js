@@ -130,6 +130,10 @@ const loginUsuario = async (req, res) => {
             return res.status(403).json({ msg: "Cuenta no verificada. Revisa tu correo para confirmar tu cuenta." });
         }
 
+        if(usuario && !usuario.estado){
+            return res.status(403).json({msg:"Tu cuenta ha sido desactivada. Contacta al administrador."})
+        }
+
         const verificarPassword = await usuario.matchPassword(password);
         if (!verificarPassword) {
             return res.status(400).json({ msg: "Contraseña incorrecta." });

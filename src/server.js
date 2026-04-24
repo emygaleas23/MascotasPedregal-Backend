@@ -10,6 +10,9 @@ import authRoutes from "./routers/auth/auth_routes.js";
 import cloudinary from 'cloudinary';
 import fileUpload from 'express-fileupload';
 
+// Importar rutas de administrador
+import adminRoutes from "./routers/usuarios/administrador_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -42,6 +45,10 @@ app.get('/',(req,res)=> res.send("Server on"))
 
 // Rutas de autenticación y perfil
 app.use("/api/auth", authRoutes);
+
+// Rutas de administrador
+app.use("/api/administrador",adminRoutes);
+
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
