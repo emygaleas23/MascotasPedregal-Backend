@@ -94,7 +94,6 @@ const confirmarEmail = async (req, res) => {
 };
 
 // LOGIN
-
 const loginUsuario = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -175,7 +174,6 @@ const reestablecerPassword = async (req, res) => {
 }
 
 // COMPROBAR EL TOKEN PARA REESTABLECER CONTRASEÑA
-
 const comprobarTokenPassword = async (req, res) => {
     try {
         const { token } = req.params;
@@ -225,4 +223,13 @@ const crearNuevoPassword = async (req, res) => {
     }
 };
 
-export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword };
+// DETALLES PERFIL USUARIO
+
+const detallesPerfil = async (req, res) => {
+    try{
+        res.status(200).json(req.usuario)
+    }catch(error){
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
+    }
+}
+export { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil };

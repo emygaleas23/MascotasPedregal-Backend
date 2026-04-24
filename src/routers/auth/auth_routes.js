@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword } from "../../controllers/auth/auth_controller.js";
+import { registrarUsuario, confirmarEmail, loginUsuario, reestablecerPassword, comprobarTokenPassword, crearNuevoPassword, detallesPerfil } from "../../controllers/auth/auth_controller.js";
 import { verifyToken } from "../../middlewares/JWT.js";
 
 const router = Router();
@@ -12,4 +12,7 @@ router.get("/reestablecer-password/:token", comprobarTokenPassword);
 router.post("/crear-nuevo-password/:token", crearNuevoPassword);
 
 router.post("/login", loginUsuario);
+
+router.get("/perfil", verifyToken, detallesPerfil);
+
 export default router;
