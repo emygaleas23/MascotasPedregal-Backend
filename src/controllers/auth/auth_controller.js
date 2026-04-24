@@ -12,13 +12,15 @@ const registrarUsuario = async (req, res) => {
             return res.status(400).json({ msg: "Todos los campos son obligatorios" });
         }
 
+        const rolUpper = rol.toUpperCase().trim()
+
         // Bloquear ADMINISTRADOR en el registro
-        if (rol === "ADMINISTRADOR") {
+        if (rolUpper.includes("ADMINISTRADOR")) {
             return res.status(403).json({ msg: "No permitido registrarse como administrador" });
         }
 
         // Solo permitir roles válidos
-        if (!["DUEÑO", "CUIDADOR"].includes(rol)) {
+        if (!["DUEÑO", "CUIDADOR"].includes(rolUpper)) {
             return res.status(400).json({ msg: "Rol inválido" });
         }
 
@@ -52,7 +54,7 @@ const registrarUsuario = async (req, res) => {
             return res.status(400).json({ msg: "Lo sentimos, el teléfono ya está registrado" });
         }
 
-        const nuevoUsuario = new Usuario(emailLower, password, rol, nombre, apellido, telefono.trim());
+        const nuevoUsuario = new Usuario({email:emailLower, password, rol:rolUpper, nombre, apellido, telefono:telefono.trim()});
 
         const token = nuevoUsuario.createToken();
 
@@ -106,7 +108,7 @@ const loginUsuario = async (req, res) => {
             return res.status(400).json({ msg: "El email no es válido" });
         }
 
-        const usuario = await Usuario.findOne({ email: emailLower }).select("+password");
+        const usuario = await Usuario.findOne({ email: emailLower });
         if (!usuario) {
             return res.status(400).json({ msg: "Usuario no encontrado" });
         }
@@ -157,7 +159,7 @@ const reestablecerPassword = async (req, res) => {
 
         const usuario = await Usuario.findOne({email:email.toLowerCase()})
 
-        if (!usuario) return res.status(400).json({ msg: "El ususario no se encuentra registrado"});
+        if (!usuario) return res.status(400).json({ msg: "El usuario no se encuentra registrado"});
 
         const token = usuario.createToken();
         usuario.token = token;
@@ -182,7 +184,7 @@ const comprobarTokenPassword = async (req, res) => {
         if (usuario?.token !== token)
         return res.status(404).json({ msg: "Lo sentimos, no se puede validar la cuenta" });
 
-        res.status(200).json({ msg: "Cuenta confirmado, ya puedes crear tu nueva contraseña" });
+        res.status(200).json({ msg: "Cuenta confirmada, ya puedes crear tu nueva contraseña" });
 
     } catch (error) {
         console.error(error);
@@ -202,12 +204,18 @@ const crearNuevoPassword = async (req, res) => {
 
         if (password !== nuevopassword)
             return res.status(404).json({ msg: "Las contraseñas no coinciden" });
+
+        // Validación contraseña
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;
+        if (!passwordRegex.test(password) && !passwordRegex.test(nuevopassword)) {
+            return res.status(400).json({ msg: "La contraseña debe tener al menos 16 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales" });
+        }
         
         const usuario = await Usuario.findOne({ token });
         if (!usuario) return res.status(404).json({ msg: "No se puede validar la cuenta" });
 
         usuario.token = null;
-        usuario.password = await usuario.encryptPassword(password);
+        usuario.password = password;
         await usuario.save();
 
         res.status(200).json({msg: "Ya puedes iniciar sesión en tu cuenta."});
