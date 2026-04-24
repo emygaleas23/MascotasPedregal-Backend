@@ -11,7 +11,11 @@ const app = express()
 dotenv.config()
 
 // Configuraciones 
-app.use(cors())
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders:['Content-Type', 'Authorization']
+}))
 app.set('port',process.env.PORT || 3000)
 
 // Middlewares 
@@ -19,6 +23,8 @@ app.use(express.json())
 
 // Rutas 
 app.get('/',(req,res)=> res.send("Server on"))
+
+// Rutas de autenticación y perfil
 app.use("/api/auth", authRoutes);
 
 // Manejo de una ruta no encontrada
