@@ -319,9 +319,9 @@ const actualizarDueno = async (req, res) => {
     
         // Enviar correos
         try {
-            await sendMailEliminarDuenoMascota(anteriorDueno.email, mascota.nombre);
+            // await sendMailEliminarDuenoMascota(anteriorDueno.email, mascota.nombre);
     
-            await sendMailRegistroMascota(nuevoDueno.email, mascota.nombre);
+            // await sendMailRegistroMascota(nuevoDueno.email, mascota.nombre);
         } catch (mailError) {
             console.error("Error enviando correos:", mailError.message);
         }

@@ -64,7 +64,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailRegistroUsuario(email, passwordGenerado, token); // Enviar email de confirmación
+        // await sendMailRegistroUsuario(email, passwordGenerado, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",

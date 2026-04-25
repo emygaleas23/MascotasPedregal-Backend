@@ -73,7 +73,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailRegistro(email, token); // Enviar email de confirmación
+        // await sendMailRegistro(email, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",
@@ -180,7 +180,7 @@ const reestablecerPassword = async (req, res) => {
         const token = usuario.createToken();
         usuario.token = token;
 
-        await sendMailReestablecerPassword(email,token)
+        // await sendMailReestablecerPassword(email,token)
         await usuario.save();
 
         res.status(200).json({msg:"Revisa tu correo para reestablecer tu contraseña."})
@@ -232,7 +232,7 @@ const crearNuevoPassword = async (req, res) => {
         usuario.token = null;
         usuario.password = password;
         await usuario.save();
-        await sendMailCambioPassword(usuario.email)
+        // await sendMailCambioPassword(usuario.email)
 
         res.status(200).json({msg: "Ya puedes iniciar sesión en tu cuenta."});
     } catch (error) {
@@ -403,7 +403,7 @@ const actualizarPassword = async (req, res) => {
         usuario.password = passwordnuevo;
 
         await usuario.save()
-        await sendMailCambioPassword(usuario.email)
+        // await sendMailCambioPassword(usuario.email)
         
         res.status(200).json({msg: "Se ha actualizado la contraseña correctamente."});
     } catch (error) {
