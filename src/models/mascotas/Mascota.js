@@ -14,32 +14,41 @@ const mascotaSchema = new Schema(
         },
         tipo: {
             type: String,
-            enum:["Perro", "Gato", "Otro"],
+            enum:["PERRO", "GATO", "OTRO"],
             required: true
         },
         raza: {
-            type: String
+            type: String,
+            trim:true
         },
         genero: {
             type: String,
-            enum: ["M", "H"]
+            enum: ["M", "H"],
         },
         tamano: {
             type: String,
-            enum: ["Pequeño", "Mediano", "Grande"]
+            enum: ["PEQUEÑO", "MEDIANO", "GRANDE"]
         },
         color: {
-            type: String
+            type: String,
+            trim:true
         },
         fecha_nacimiento: {
             type: Date
         },
         foto_principal: {
-            type: String
+            type: String,
+            trim:true
         },
         descripcion: {
-            type: String
-        }
+            type: String,
+            trim: true
+        },
+        estado:{
+            type:Boolean,
+            default:true,
+            required:true
+        },
     },
     {
         timestamps:true

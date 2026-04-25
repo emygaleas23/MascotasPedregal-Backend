@@ -1,7 +1,6 @@
 import {Schema, model} from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { match } from "assert";
 
 const usuarioSchema = new Schema({
     // Rol del usuario: ADMINISTRADOR, DUEÑO o CUIDADOR
@@ -64,6 +63,7 @@ const usuarioSchema = new Schema({
         required:true,
         trim:true,
         unique:true,
+        match: [/^\d{10}$/, "El teléfono debe tener 10 dígitos"]
     },
     fechaNacimiento:{
         type:Date

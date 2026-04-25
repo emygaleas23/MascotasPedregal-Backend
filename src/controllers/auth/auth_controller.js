@@ -1,12 +1,10 @@
 import Usuario from "../../models/usuarios/Usuario.js";
 import { createToken } from "../../middlewares/JWT.js";
-import { sendMailToRecoverPassword, sendMailToRegister } from "../../helpers/sendMail.js";
+import { sendMailRegistro, sendMailReestablecerPassword, sendMailCambioPassword } from "../../helpers/sendMail.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
 import mongoose from "mongoose";
 
-import { subirBase64Cloudinary } from "../../helpers/uploadCloudinary.js";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs-extra";
+import { subirBase64Cloudinary, subirImagenCloudinary } from "../../helpers/uploadCloudinary.js";
 
 // REGISTRO DE USUARIO: 
 const registrarUsuario = async (req, res) => {
@@ -75,7 +73,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailToRegister(email, token); // Enviar email de confirmación
+        await sendMailRegistro(email, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",
@@ -130,7 +128,7 @@ const loginUsuario = async (req, res) => {
             return res.status(403).json({ msg: "Cuenta no verificada. Revisa tu correo para confirmar tu cuenta." });
         }
 
-        if(usuario && !usuario.estado){
+        if(!usuario.estado){
             return res.status(403).json({msg:"Tu cuenta ha sido desactivada. Contacta al administrador."})
         }
 
@@ -177,11 +175,12 @@ const reestablecerPassword = async (req, res) => {
         const usuario = await Usuario.findOne({email:email.toLowerCase()})
 
         if (!usuario) return res.status(400).json({ msg: "El usuario no se encuentra registrado"});
+        if(!usuario.verificado) return res.status(400).json({ msg: "Primero debes validar tu cuenta"});
 
         const token = usuario.createToken();
         usuario.token = token;
 
-        await sendMailToRecoverPassword(email,token)
+        await sendMailReestablecerPassword(email,token)
         await usuario.save();
 
         res.status(200).json({msg:"Revisa tu correo para reestablecer tu contraseña."})
@@ -223,7 +222,7 @@ const crearNuevoPassword = async (req, res) => {
 
         // Validación contraseña
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;
-        if (!passwordRegex.test(password) && !passwordRegex.test(confirmpassword)) {
+        if (!passwordRegex.test(password)) {
             return res.status(400).json({ msg: "La contraseña debe tener al menos 16 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales" });
         }
         
@@ -233,6 +232,7 @@ const crearNuevoPassword = async (req, res) => {
         usuario.token = null;
         usuario.password = password;
         await usuario.save();
+        await sendMailCambioPassword(usuario.email)
 
         res.status(200).json({msg: "Ya puedes iniciar sesión en tu cuenta."});
     } catch (error) {
@@ -253,7 +253,7 @@ const detallesPerfil = async (req, res) => {
 // ACTUALIZAR PERFIL INFORMACIÓN PERSONAL
 const actualizarPerfil = async (req, res) =>{
     try{
-        const{id}=req.params;
+        const id =req.usuario._id;
         
         if(!mongoose.Types.ObjectId.isValid(id)){
             return res.status(400).json({msg: "ID de usuario no válido"})
@@ -264,9 +264,7 @@ const actualizarPerfil = async (req, res) =>{
             return res.status(404).json({msg: "Usuario no encontrado"})
         }
 
-        if(!req.body || Object.keys(req.body).length === 0){
-            return res.status(400).json({msg: "No se han enviado datos para actualizar."})
-        }
+        if(!req.body || Object.keys(req.body).length === 0) return res.status(400).json({msg: "No se han enviado datos para actualizar."})
 
         const {nombre, apellido, email, telefono, fechaNacimiento} = req.body;
 
@@ -281,7 +279,7 @@ const actualizarPerfil = async (req, res) =>{
             }
             const emailExistente = await Usuario.findOne({ email: emailLower });
             if (emailExistente) {
-                return res.status(404).json({ msg: `El email ya se encuentra registrado` });
+                return res.status(400).json({ msg: `El email ya se encuentra registrado` });
             }
             usuario.email = emailLower;
         }
@@ -335,12 +333,16 @@ const actualizarPerfil = async (req, res) =>{
 // AGREGAR O ACTUALIZAR FOTO DE PERFIL
 const actualizarFotoPerfil = async (req, res) => {
     try {
-        const{id}= req.params;
+        const id =req.usuario._id;
         // Validar ID
         if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(404).json({msg:`ID inválido ${id}`})
 
-        // Validara que venga una imagen o un base64
-        if (!req.files?.imagen || !req.files?.imagen) {
+        // IMAGEN
+        const imagenFile = req.files?.imagen;
+        const imagenBase64 = req.body?.imagen
+
+        // Validara que venga algo
+        if (!imagenFile && !imagenBase64) {
             return res.status(400).json({ msg: "No se ha proporcionado ninguna imagen" });
         }
 
@@ -348,16 +350,21 @@ const actualizarFotoPerfil = async (req, res) => {
         const usuario = await Usuario.findById(id);
         if (!usuario) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-        // Subir a Cloudinary
-        const cloudiResponse = await cloudinary.uploader.upload(req.files.imagen.tempFilePath, { 
-            folder: "Avatares-Usuarios" 
-        });
+        // Lógica para subir el archivo
+        let secure_url;
+        if (imagenFile) {
+            const resp = await subirImagenCloudinary(imagenFile.tempFilePath, "Avatares-Usuarios");
+            secure_url = resp.secure_url;
+        } // Caso base64
+        else if (imagenBase64?.startsWith("data:image")) {
+            secure_url = await subirBase64Cloudinary(imagenBase64, "Avatares-Usuarios");
+        } else {
+            return res.status(400).json({ msg: "Formato de imagen no válido" });
+        }
 
-        usuario.avatar_url = cloudiResponse.secure_url;
+        usuario.avatar_url = secure_url;
 
         await usuario.save();
-
-        await fs.unlink(req.files.imagen.tempFilePath);
 
         res.status(200).json({ msg:"Foto de perfil actualizada correctamente", avatar_url: usuario.avatar_url});
 
@@ -380,10 +387,10 @@ const actualizarPassword = async (req, res) => {
         }
 
         if(!passwordactual || !passwordnuevo){
-            return res.status(404).json({msg:`Debes ingresar todos los campos`})
+            return res.status(400).json({msg:`Debes ingresar todos los campos`})
         }
 
-        const verificarPassword = await usuario.matchPassword(req.body.passwordactual)
+        const verificarPassword = await usuario.matchPassword(passwordactual)
 
         if (!verificarPassword) return res.status(404).json({msg: `Lo sentimos, la contraseña actual no es correcta`})
 
@@ -396,6 +403,8 @@ const actualizarPassword = async (req, res) => {
         usuario.password = passwordnuevo;
 
         await usuario.save()
+        await sendMailCambioPassword(usuario.email)
+        
         res.status(200).json({msg: "Se ha actualizado la contraseña correctamente."});
     } catch (error) {
         console.error(error);

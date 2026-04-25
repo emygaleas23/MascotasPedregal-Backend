@@ -1,4 +1,4 @@
-import { sendMailToRegisterUser } from "../../helpers/sendMail.js";
+import { sendMailRegistroUsuario } from "../../helpers/sendMail.js";
 import Usuario from "../../models/usuarios/Usuario.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
 import crypto from "crypto"
@@ -64,7 +64,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailToRegisterUser(email, passwordGenerado, token); // Enviar email de confirmación
+        await sendMailRegistroUsuario(email, passwordGenerado, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",
@@ -110,8 +110,18 @@ const actualizarUsuario = async (req, res) =>{
 
         if(estado !== undefined) usuario.estado = estado;
         if(verificado !== undefined) usuario.verificado = verificado;
-        if(nombre) usuario.nombre = nombre;
-        if(apellido) usuario.apellido = apellido;
+        
+        if(nombre){
+            const nombreTrim = nombre.trim()
+            if (!nombreTrim) return res.status(400).json({msg:"El nombre no puede estar vacío."})
+            usuario.nombre = nombreTrim;
+        }
+
+        if(apellido){
+            const apellidoTrim = apellido.trim()
+            if (!apellidoTrim) return res.status(400).json({msg:"El apellido no puede estar vacío."})
+            usuario.apellido = apellidoTrim;
+        }
 
         if(telefono && telefono != usuario.telefono){
             const telefonoRegex = /^\d{10}$/;

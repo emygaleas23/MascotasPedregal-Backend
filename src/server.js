@@ -13,6 +13,9 @@ import fileUpload from 'express-fileupload';
 // Importar rutas de administrador
 import adminRoutes from "./routers/usuarios/administrador_routes.js"
 
+// Importar rutas Mascotas
+import mascotasRoutes from "./routers/mascotas/mascotas_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -49,6 +52,8 @@ app.use("/api/auth", authRoutes);
 // Rutas de administrador
 app.use("/api/administrador",adminRoutes);
 
+// Rutas de gestión de Mascotas
+app.use("/api/mascotas", mascotasRoutes)
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
