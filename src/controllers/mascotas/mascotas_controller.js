@@ -21,6 +21,9 @@ const registroMascota = async(req, res) =>{
             duenoID = owner_id;
         } else if(usuarioLogueado.rol === "DUEÑO"){
             // El Dueño solo puede registrar mascotas para sí mismo
+            if(owner_id !== usuarioLogueado._id){
+                return res.status(400).json({msg:"No puedes asignar una mascota a otro usuario"})
+            }
             duenoID = usuarioLogueado._id;
         } else {
             return res.status(400).json({msg: "No tienes permisos para registrar mascotas."})
@@ -56,7 +59,7 @@ const registroMascota = async(req, res) =>{
             const fecha = new Date(fecha_nacimiento);
             const hoy = new Date();
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!fechaRegex.test(fecha_nacimiento)){
+            if (!fechaRegex.test(fecha_nacimiento.trim())){
                 return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
             }
             if(fecha>hoy){
@@ -75,7 +78,7 @@ const registroMascota = async(req, res) =>{
             tamano:tamanoMayus,
             color,
             foto_principal,
-            fecha_nacimiento,
+            fecha_nacimiento:fecha_nacimiento.trim(),
             descripcion
         });
 
@@ -95,7 +98,7 @@ const registroMascota = async(req, res) =>{
 
         const mascotaGuardada = await nuevaMascota.save();
 
-        await sendMailRegistroMascota(dueno.email, mascotaGuardada.nombre);
+        // await sendMailRegistroMascota(dueno.email, mascotaGuardada.nombre);
 
         res.status(201).json({msg: "Mascota registrada con éxito", mascota: mascotaGuardada});
     } catch (error){
@@ -134,7 +137,13 @@ const detalleMascota = async (req, res) => {
         if(rol === "ADMINISTRADOR"){
             mascota = await Mascota.findById(id).select("-createdAt -updatedAt -__v").populate('owner_id', 'email nombre apellido telefono')
             if(!mascota) return res.status(404).json({msg:`No existe la mascota ${id}`});
-        }else{ // FALTA LOGICA DUEÑO Y CUIDADOR
+        }else if(rol === "DUEÑO"){
+            mascota = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
+            if(mascota.owner_id._id.toString() !== req.usuario._id.toString()){
+                return res.status(400).json({msg:"No puedes ver una mascota que no te pertenece."})
+            }
+        }
+        else{
             return res.status(404).json({msg:`No tienes permisos para ver esta mascota.`});
         }
 
@@ -158,12 +167,16 @@ const actualizarMascota = async (req, res) => {
             const mascota = await Mascota.findById(id).select("-createdAt -updatedAt -__v").populate('owner_id', 'email nombre apellido telefono')
             if(!mascota) return res.status(404).json({msg:`No existe la mascota ${id}`});
             mascotaActualizar = mascota;
-        }else if(rol === "DUEÑO"){ // LUEGO HAGO LA LÓGICA
+        }else if(rol === "DUEÑO"){
+            mascotaActualizar = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
+            if(mascotaActualizar.owner_id._id.toString() !== req.usuario._id.toString()){
+                return res.status(400).json({msg:"No puedes actualizar una mascota que no te pertenece."})
+            }
         }else{
             return res.status(404).json({msg:`No tienes permisos para ver esta mascota.`});
         }
 
-        const {owner_id, nombre, tipo, raza, genero, tamano, color, fecha_nacimiento, descripcion, foto_principal} = req.body;
+        const {nombre, tipo, raza, genero, tamano, color, fecha_nacimiento, descripcion, foto_principal} = req.body;
 
         if (nombre){
             if(!nombre.trim()){
@@ -334,7 +347,12 @@ const eliminarMascota = async (req, res) => {
             mascota.estado = false;
             await mascota.save()
             res.status(200).json({msg:"Mascota desactivada correctamente"})
-        }else if(rol === "DUEÑO"){ // LUEGO HAGO LA LÓGICA
+        }else if(rol === "DUEÑO"){
+            if(mascota.owner_id._id.toString() !== req.usuario._id.toString()){
+                return res.status(400).json({msg:"No puedes eliminar una mascota que no te pertenece."})
+            }
+            await Mascota.findByIdAndDelete(id)
+            res.status(200).json({msg:"Mascota eliminada con éxito."}) //FALTA LOGICA DE SERVICIOS
         }else{
             return res.status(404).json({msg:`No tienes permisos para eliminar esta mascota.`});
         }
