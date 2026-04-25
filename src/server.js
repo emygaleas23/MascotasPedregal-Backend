@@ -16,6 +16,9 @@ import adminRoutes from "./routers/usuarios/administrador_routes.js"
 // Importar rutas Mascotas
 import mascotasRoutes from "./routers/mascotas/mascotas_routes.js"
 
+// Importar rutas Cuidadores
+import cuidadoresRoutes from "./routers/usuarios/cuidador_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -53,7 +56,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/administrador",adminRoutes);
 
 // Rutas de gestión de Mascotas
-app.use("/api/mascotas", mascotasRoutes)
+app.use("/api/mascotas", mascotasRoutes);
+
+// Rutas de gestión de cuidadores
+app.use("/api/cuidadores", cuidadoresRoutes);
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {

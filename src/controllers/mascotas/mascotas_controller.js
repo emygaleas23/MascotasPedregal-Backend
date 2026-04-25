@@ -99,7 +99,7 @@ const registroMascota = async(req, res) =>{
 
         res.status(201).json({msg: "Mascota registrada con éxito", mascota: mascotaGuardada});
     } catch (error){
-        return res.status(500).json({ msg: `Error en el servidor - ${error.message}` });
+        res.status(500).json({ msg: `Error en el servidor - ${error.message}` });
     }
 }
 
@@ -117,7 +117,7 @@ const listarMascotas = async (req, res) => {
         // Enviar respuesta
         res.status(200).json(mascotas)
     }catch(error){
-        return res.status(500).json({msg:`Error en el servidor - ${error}`})
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
 
@@ -141,7 +141,7 @@ const detalleMascota = async (req, res) => {
         res.status(200).json(mascota)
 
     }catch (error){
-        return res.status(500).json({msg:`Error en el servidor - ${error}`})
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
 
@@ -246,7 +246,7 @@ const actualizarMascota = async (req, res) => {
         await mascotaActualizar.save()
         res.status(200).json({msg:"Actualizaste la mascota con éxito", mascotaActualizar})
     }catch (error){
-        return res.status(500).json({msg:`Error en el servidor - ${error}`})
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
 
@@ -316,8 +316,7 @@ const actualizarDueno = async (req, res) => {
         res.json({msg: "Dueño de la mascota actualizado correctamente"});
 
     } catch (error) {
-        console.error("Error cambiando dueño:", error);
-        return res.status(500).json({message: `Error en el servidor - ${error}`});
+        res.status(500).json({message: `Error en el servidor - ${error}`});
     }
 };
 
@@ -341,7 +340,7 @@ const eliminarMascota = async (req, res) => {
         }
 
     }catch (error){
-        return res.status(500).json({msg:`Error en el servidor - ${error}`})
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
 
