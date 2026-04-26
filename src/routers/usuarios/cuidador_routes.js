@@ -5,5 +5,7 @@ import { verifyToken } from "../../middlewares/JWT.js";
 const router = Router()
 
 router.get("/listar-cuidadores",listarCuidadores)
+router.patch("/actualizar-perfil", verifyToken, actualizarPerfil)
+router.patch("/actualizar-portada",verifyToken, actualizarPortada)
 
 export default router;

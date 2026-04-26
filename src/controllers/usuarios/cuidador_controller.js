@@ -18,7 +18,13 @@ const actualizarPerfil = async (req, res) => {
 
         const cuidador = await Cuidador.findOne({usuario: id})
         if(!cuidador){
-            return res.status(404).json({ msg: "Perfil de cuidador no encontrado." });
+            const perfilCuidador = new Cuidador({
+                usuario: req.usuario._id,
+                tarifa_hora:0,
+                servicios_ofrecidos: [],
+                biografia: "",
+            })
+            await perfilCuidador.save()
         }
 
         if(biografia !== undefined){
@@ -48,7 +54,7 @@ const actualizarPerfil = async (req, res) => {
             }
         
             const servicios = servicios_ofrecidos
-                .map(s => String(s).trim())
+                .map(s => String(s).trim().toUpperCase())
                 .filter(s => s.length > 0);
         
             if (servicios.length === 0) {
@@ -70,29 +76,32 @@ const actualizarPerfil = async (req, res) => {
             const diasPermitidos = ["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"];
             const diasValidos = dia.map(d => d.trim().toUpperCase());
             const diasInvalidos = diasValidos.filter(d => !diasPermitidos.includes(d));
-            if (diasInvalidos.length > 0) return res.status(400).json({ msg: `Días inválidos: ${diasInvalidos.join(", ")}` });
+            if (diasInvalidos.length > 0) return res.status(400).json({ msg: "Solo debes ingresar días válidos: 'Lunes', 'Martes','Miercoles', 'Jueves', 'Viernes'" });
         
             // Validar horas
-            if (!hora_desde || !hora_hasta) {
+            const desde = hora_desde.trim()
+            const hasta = hora_hasta.trim()
+
+            if (!desde || !hasta) {
                 return res.status(400).json({ msg: "Debes ingresar hora desde y hasta" });
             }
         
             // Validar formato simple HH:mm
             const horaRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
         
-            if (!horaRegex.test(hora_desde) || !horaRegex.test(hora_hasta)) {
+            if (!horaRegex.test(desde) || !horaRegex.test(hasta)) {
                 return res.status(400).json({ msg: "Formato de hora inválido (HH:mm)" });
             }
         
             // Validar lógica (desde < hasta)
-            if (hora_desde >= hora_hasta) {
-                return res.status(400).json({ msg: "La hora desde debe ser menor que la hora hasta" });
+            if (desde >= hasta) {
+                return res.status(400).json({ msg: "La 'hora desde' debe ser menor que la 'hora hasta'" });
             }
         
             cuidador.horario_disponible = {
                 dia: diasValidos,
-                hora_desde,
-                hora_hasta
+                hora_desde:desde,
+                hora_hasta:hasta
             };
         }
 
@@ -114,8 +123,8 @@ const actualizarPortada = async (req, res) =>{
         if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(404).json({msg:`ID inválido ${id}`})
 
         // IMAGEN
-        const imagenFile = req.files?.portada;
-        const imagenBase64 = req.body?.portada
+        const imagenFile = req.files?.portada_url;
+        const imagenBase64 = req.body?.portada_url
 
         // Validara que venga algo
         if (!imagenFile && !imagenBase64) {
@@ -141,7 +150,7 @@ const actualizarPortada = async (req, res) =>{
         cuidador.portada_url = secure_url;
         await cuidador.save()
 
-        res.status(200).json({msg:"Portada actualizada correctamente"})
+        res.status(200).json({msg:"Portada actualizada correctamente", "portada_url": secure_url})
     }catch (error){
         res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
