@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Postulacion from "../../models/servicios/Postulacion.js";
 import Anuncio from "../../models/servicios/Anuncio.js";
+import Servcio from "../../models/servicios/Servcio.js";
 
 // CUIDADOR
 const postularAnuncio = async (req, res) => {
@@ -84,24 +85,23 @@ const aceptarPostulacion = async (req, res) => {
 
         const { postulacion_id } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(postulacion_id)) {
-            return res.status(400).json({ msg: "ID de postulación inválido" });
-        }
+        if (!mongoose.Types.ObjectId.isValid(postulacion_id)) return res.status(400).json({ msg: "ID de postulación inválido" });
 
         const postulacion = await Postulacion.findById(postulacion_id);
-        if (!postulacion) {
-            return res.status(404).json({ msg: "No existe la postulación" });
-        }
+        if (!postulacion) return res.status(404).json({ msg: "No existe la postulación" });
+        if(postulacion.estado === "ACEPTADA") return res.status(400).json({ msg: "Esta postulación ya fue aceptada anteriormente" });
 
         const anuncio = await Anuncio.findById(postulacion.anuncio_id);
-        if (!anuncio) {
-            return res.status(404).json({ msg: "No existe el anuncio" });
-        }
+        if (!anuncio) return res.status(404).json({ msg: "No existe el anuncio" });
 
         // solo dueño del anuncio
         if (anuncio.dueno_id.toString() !== duenoID.toString()) return res.status(403).json({msg: "No puedes aceptar postulaciones de este anuncio"});
 
         if (anuncio.estado !== "ABIERTO") return res.status(400).json({msg: "El anuncio ya está cerrado"});
+
+        // Evitar duplicar el servicio
+        const existeServicio = await findOne({ anuncio_id: anuncio._id });
+        if (existeServicio) return res.status(400).json({ msg: "Ya existe un servicio para este anuncio" });
 
         // 1. Aceptar esta postulación
         postulacion.estado = "ACEPTADA";
@@ -122,9 +122,23 @@ const aceptarPostulacion = async (req, res) => {
 
         await anuncio.save();
 
+        // 4. crear servicio
+        const servicio = new Servicio({
+            dueno_id: anuncio.dueno_id,
+            cuidador_id: postulacion.cuidador_id,
+            anuncio_id: anuncio._id,
+            mascotas: anuncio.mascotas,
+            servicios: anuncio.servicios,
+            horario: anuncio.horario,
+            estado: "ACTIVO"
+        });
+        
+        await servicio.save();
+
         res.status(200).json({
             msg: "Postulación aceptada correctamente",
-            postulacion
+            postulacion,
+            servicio
         });
 
     } catch (error) {
