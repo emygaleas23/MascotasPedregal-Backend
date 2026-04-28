@@ -24,10 +24,12 @@ const registroMascota = async(req, res) =>{
             duenoID = owner_id;
         } else if(usuarioLogueado.rol === "DUEÑO"){
             // El Dueño solo puede registrar mascotas para sí mismo
-            if(owner_id !== usuarioLogueado._id){
-                return res.status(400).json({msg:"No puedes asignar una mascota a otro usuario"})
-            }
             duenoID = usuarioLogueado._id;
+            if (owner_id) {
+                return res.status(400).json({
+                    msg: "No debes enviar owner_id, se asigna automáticamente"
+                });
+            }
         } else {
             return res.status(400).json({msg: "No tienes permisos para registrar mascotas."})
         }
