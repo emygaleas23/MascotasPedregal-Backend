@@ -77,8 +77,36 @@ const registrarUsuario = async (req, res) => {
 // LISTAR USUARIOS
 const listarUsuarios = async (req, res) => {
     try{
-        const usuarios = await Usuario.find().select("-password");
-        res.status(200).json(usuarios)
+        const {rol} = req.query // LISTAR SEGUN EL ROL QUE VENGA DUEÑO, CUIDADOR, ADMINISTRADOR
+        let filtro = {};
+
+        // Si viene rol, validar y aplicar filtro
+        if (rol) {
+            const rolesValidos = ["ADMINISTRADOR", "DUEÑO", "CUIDADOR"];
+            const rolUpper = rol.toUpperCase();
+
+            if (!rolesValidos.includes(rolUpper)) {
+                return res.status(400).json({
+                    msg: "Rol inválido. Usa ADMINISTRADOR, DUEÑO o CUIDADOR"
+                });
+            }
+
+            filtro.rol = rolUpper;
+        }
+        
+        const usuarios = await Usuario.find(filtro).select("-password");
+        if (usuarios.length === 0) {
+            return res.status(200).json({
+                msg: "No se encontraron usuarios",
+                usuarios: []
+            });
+        }
+        
+        res.status(200).json({
+            total: usuarios.length,
+            usuarios
+        })
+
     }catch(error){
         res.status(500).json({msg: `Error en el servidor - ${error}`})
     }
