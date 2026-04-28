@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Postulacion from "../../models/servicios/Postulacion.js";
 import Anuncio from "../../models/servicios/Anuncio.js";
-import Servcio from "../../models/servicios/Servcio.js";
+import Servicio from "../../models/servicios/Servicio.js";
 
 // CUIDADOR
 const postularAnuncio = async (req, res) => {

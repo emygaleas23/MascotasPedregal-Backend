@@ -25,6 +25,9 @@ import postulacionesRoutes from "./routers/servicios/postulacion_routes.js"
 // Importar rutas de Anuncios
 import anunciosRoutes from "./routers/servicios/anuncio_routes.js"
 
+// Importar rutas de Servicios
+import serviciosRoutes from './controllers/servicios/servicio_controller.js';
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -75,6 +78,9 @@ app.use("/api/postulaciones",postulacionesRoutes)
 
 // Rutas de gestión de anuncios
 app.use("/api/anuncios", anunciosRoutes)
+
+// Rutas de gestión de servicios
+app.use("/api/servicios", serviciosRoutes)
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
