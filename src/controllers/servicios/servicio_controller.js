@@ -8,11 +8,11 @@ const obtenerServicios = async (req, res) => {
 
         let servicios;
         if(rol === "DUEÑO"){
-            servicios = await Servicio.find({dueno_id: usuario})
+            servicios = await Servicio.find({dueno_id: usuarioID})
                 .populate("cuidador_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas")
         } else if (rol === "CUIDADOR"){
-            servicios = await Servicio.find({cuidador_id:usuario})
+            servicios = await Servicio.find({cuidador_id:usuarioID})
                 .populate("dueno_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas");
         }else{ return res.status(403).json({ msg: "No tienes permisos para ver servicios" });}

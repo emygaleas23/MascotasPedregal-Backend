@@ -1,5 +1,6 @@
 import Anuncio from "../../models/servicios/Anuncio.js";
 import Mascota from "../../models/mascotas/Mascota.js";
+import mongoose from "mongoose";
 
 const publicarAnuncio = async (req, res) => {
     try{
