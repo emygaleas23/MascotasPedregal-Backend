@@ -7,6 +7,9 @@ import {v2 as cloudinary} from "cloudinary"
 import fs from "fs-extra"
 
 import { sendMailRegistroMascota, sendMailEliminarDuenoMascota } from "../../helpers/sendMail.js";
+import Servicio from "../../models/servicios/Servicio.js";
+import { json } from "express";
+import Anuncio from "../../models/servicios/Anuncio.js";
 
 const registroMascota = async(req, res) =>{
     try{
@@ -98,7 +101,7 @@ const registroMascota = async(req, res) =>{
 
         const mascotaGuardada = await nuevaMascota.save();
 
-        // await sendMailRegistroMascota(dueno.email, mascotaGuardada.nombre);
+        await sendMailRegistroMascota(dueno.email, mascotaGuardada.nombre);
 
         res.status(201).json({msg: "Mascota registrada con éxito", mascota: mascotaGuardada});
     } catch (error){
@@ -319,9 +322,9 @@ const actualizarDueno = async (req, res) => {
     
         // Enviar correos
         try {
-            // await sendMailEliminarDuenoMascota(anteriorDueno.email, mascota.nombre);
+            await sendMailEliminarDuenoMascota(anteriorDueno.email, mascota.nombre);
     
-            // await sendMailRegistroMascota(nuevoDueno.email, mascota.nombre);
+            await sendMailRegistroMascota(nuevoDueno.email, mascota.nombre);
         } catch (mailError) {
             console.error("Error enviando correos:", mailError.message);
         }
@@ -336,7 +339,7 @@ const actualizarDueno = async (req, res) => {
 const eliminarMascota = async (req, res) => {
     try{
         const {id} = req.params
-        const rol = req.usuario.rol
+        const {_id: usuarioID, rol} = req.usuario
 
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({msg:`El ID ${id} de la mascota no es válido`});
         
@@ -346,13 +349,33 @@ const eliminarMascota = async (req, res) => {
         if(rol === "ADMINISTRADOR"){
             mascota.estado = false;
             await mascota.save()
-            res.status(200).json({msg:"Mascota desactivada correctamente"})
+            return res.status(200).json({msg:"Mascota desactivada correctamente"})
         }else if(rol === "DUEÑO"){
-            if(mascota.owner_id._id.toString() !== req.usuario._id.toString()){
+            if(mascota.owner_id.toString() !== req.usuario._id.toString()){
                 return res.status(400).json({msg:"No puedes eliminar una mascota que no te pertenece."})
             }
-            await Mascota.findByIdAndDelete(id)
-            res.status(200).json({msg:"Mascota eliminada con éxito."}) //FALTA LOGICA DE SERVICIOS
+
+            // Validar si existe en anuncio
+            const existeEnAnuncio = await Anuncio.findOne({
+                mascotas: mongoose.Types.ObjectId(id),
+                estado: "ABIERTO"
+            })
+
+            // Validacion si la mascota tiene servicios activos o pendientes
+            const existeEnServicio = await Servicio.findOne({
+                mascotas: mongoose.Types.ObjectId(id),
+                estado: { $in: ["PENDIENTE", "ACTIVO"] }
+            })
+            
+            if (existeEnServicio || existeEnAnuncio) {
+                return res.status(400).json({
+                    msg: "No puedes eliminar una mascota que está en uso (servicio o anuncio activo)"
+                });
+            }
+            mascota.estado = false
+
+            await mascota.save()
+            return res.status(200).json({msg:"Mascota eliminada con éxito."})
         }else{
             return res.status(404).json({msg:`No tienes permisos para eliminar esta mascota.`});
         }
