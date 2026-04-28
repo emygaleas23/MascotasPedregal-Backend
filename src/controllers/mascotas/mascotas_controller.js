@@ -359,13 +359,13 @@ const eliminarMascota = async (req, res) => {
 
             // Validar si existe en anuncio
             const existeEnAnuncio = await Anuncio.findOne({
-                mascotas: mongoose.Types.ObjectId(id),
+                mascotas: id,
                 estado: "ABIERTO"
             })
 
             // Validacion si la mascota tiene servicios activos o pendientes
             const existeEnServicio = await Servicio.findOne({
-                mascotas: mongoose.Types.ObjectId(id),
+                mascotas: id,
                 estado: { $in: ["PENDIENTE", "ACTIVO"] }
             })
             
