@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { obtenerServicios, actualizarEstadoServicio, detalleServicio, listarMascotasAsignadas } from "../../controllers/servicios/servicio_controller";
+import { obtenerServicios, actualizarEstadoServicio, detalleServicio, listarMascotasAsignadas } from "../../controllers/servicios/servicio_controller.js";
 import { verifyToken } from "../../middlewares/JWT.js";
 
 const router = Router()

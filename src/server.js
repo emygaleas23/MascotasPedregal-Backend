@@ -26,7 +26,7 @@ import postulacionesRoutes from "./routers/servicios/postulacion_routes.js"
 import anunciosRoutes from "./routers/servicios/anuncio_routes.js"
 
 // Importar rutas de Servicios
-import serviciosRoutes from './controllers/servicios/servicio_controller.js';
+import serviciosRoutes from './routers/servicios/servicio_routes.js';
 
 // Inicializaciones
 const app = express()
