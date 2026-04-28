@@ -73,6 +73,8 @@ app.use("/api/anuncios", anunciosRoutes)
 // Rutas de gestión de postulaciones
 app.use("/api/postulaciones",postulacionesRoutes)
 
+// Rutas de gestión de anuncios
+app.use("/api/anuncios", anunciosRoutes)
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
