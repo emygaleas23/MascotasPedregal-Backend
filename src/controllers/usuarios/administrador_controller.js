@@ -1,7 +1,6 @@
 import { sendMailRegistroUsuario } from "../../helpers/sendMail.js";
 import Usuario from "../../models/usuarios/Usuario.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
-import crypto from "crypto"
 import mongoose from "mongoose";
 
 // REGISTRO DE USUARIO: 

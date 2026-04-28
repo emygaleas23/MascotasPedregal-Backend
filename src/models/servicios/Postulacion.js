@@ -2,14 +2,14 @@ import { Schema, model } from "mongoose";
 
 const postulacionSchema = new Schema({
     // Anuncio al que se postula
-    anuncio: {
+    anuncio_id: {
         type: Schema.Types.ObjectId,
         ref: "Anuncio",
         required: true
     },
 
     // Cuidador que se postula
-    cuidador: {
+    cuidador_id: {
         type: Schema.Types.ObjectId,
         ref: "Usuario",
         required: true
@@ -27,6 +27,6 @@ const postulacionSchema = new Schema({
 });
 
 // Evitar que un cuidador se postule 2 veces al mismo anuncio
-postulacionSchema.index({ anuncio: 1, cuidador: 1 }, { unique: true });
+postulacionSchema.index({ anuncio_id: 1, cuidador_id: 1 }, { unique: true });
 
 export default model("Postulacion", postulacionSchema);

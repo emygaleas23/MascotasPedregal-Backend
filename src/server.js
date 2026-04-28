@@ -19,6 +19,12 @@ import mascotasRoutes from "./routers/mascotas/mascotas_routes.js"
 // Importar rutas Cuidadores
 import cuidadoresRoutes from "./routers/usuarios/cuidador_routes.js"
 
+// Importar rutas de Postulaciones
+import postulacionesRoutes from "./routers/servicios/postulacion_routes.js"
+
+// Importar rutas de Anuncios
+import anunciosRoutes from "./routers/servicios/anuncio_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -60,6 +66,13 @@ app.use("/api/mascotas", mascotasRoutes);
 
 // Rutas de gestión de cuidadores
 app.use("/api/cuidadores", cuidadoresRoutes);
+
+// Rutas de gestión de anuncios
+app.use("/api/anuncios", anunciosRoutes)
+
+// Rutas de gestión de postulaciones
+app.use("/api/postulaciones",postulacionesRoutes)
+
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {

@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 
 const anuncioSchema = new Schema({
     // Dueño que crea el anuncio
-    dueno: {
+    dueno_id: {
         type: Schema.Types.ObjectId,
         ref: "Usuario",
         required: true
