@@ -28,6 +28,9 @@ import anunciosRoutes from "./routers/servicios/anuncio_routes.js"
 // Importar rutas de Servicios
 import serviciosRoutes from './routers/servicios/servicio_routes.js';
 
+// Importar rutas de Compromisos Sanitarios
+import compromisosRoutes from "./routers/compromisos_sanitarios/compromiso_sanitario_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -81,6 +84,9 @@ app.use("/api/anuncios", anunciosRoutes)
 
 // Rutas de gestión de servicios
 app.use("/api/servicios", serviciosRoutes)
+
+// Rutas de compromisos sanitarios
+app.use("/api/compromisos-sanitarios", compromisosRoutes)
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
