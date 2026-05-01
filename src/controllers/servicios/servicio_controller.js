@@ -1,6 +1,7 @@
 import Servicio from "../../models/servicios/Servicio.js";
 import mongoose from "mongoose";
 import Mascota from "../../models/mascotas/Mascota.js";
+import { sendMailEstadoServicio } from "../../helpers/sendMail.js";
 
 const obtenerServicios = async (req, res) => {
     try{
@@ -79,7 +80,10 @@ const actualizarEstadoServicio = async (req, res) => {
             return res.status(400).json({ msg: "ID de servicio inválido" });
         }
 
-        const servicio = await Servicio.findById(servicio_id);
+        const servicio = await Servicio.findById(servicio_id)
+            .populate("dueno_id", "email nombre")
+            .populate("cuidador_id", "email nombre")
+            .populate("mascotas", "nombre");
 
         if (!servicio) {
             return res.status(404).json({ msg: "Servicio no encontrado" });
@@ -129,6 +133,20 @@ const actualizarEstadoServicio = async (req, res) => {
 
         servicio.estado = estadoServicio;
         await servicio.save();
+
+        // Enviar email
+        const correoDueno = servicio.dueno_id.email;
+        const correoCuidador = servicio.cuidador_id.email;
+        const nombresMascotas = servicio.mascotas.map(m => m.nombre).join(", ");
+        const serviciosTexto = servicio.servicios.join(", ");
+        const fechaInicio = servicio.horario.fecha_inicio;
+        const fechaFin = servicio.horario.fecha_fin;
+
+        try {
+            await sendMailEstadoServicio(correoCuidador, correoDueno, nombresMascotas, serviciosTexto, fechaInicio, fechaFin, estadoServicio)
+        } catch (error) {
+            console.error("Error enviando correo:", error)
+        }
 
         res.status(200).json({
             msg: "Estado del servicio actualizado correctamente",

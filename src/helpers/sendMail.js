@@ -106,4 +106,53 @@ const sendMailEliminarDuenoMascota = (userMail, petName) => {
     );
 };
 
-export{ sendMailRegistro, sendMailRegistroUsuario, sendMailReestablecerPassword, sendMailCambioPassword, sendMailRegistroMascota, sendMailEliminarDuenoMascota}
+// Email para notificar que un servicio fue creado
+const sendMailServicioAsignado = (correoCuidador, correoDueno, mascotas, fecha_inicio, fecha_fin, horas, tarifa, total, servicios) => {
+    const inicio = new Date(fecha_inicio).toLocaleString();
+    const fin = new Date(fecha_fin).toLocaleString();
+
+    const mensaje = `
+    <h2>Nuevo Servicio Registrado 🐾</h2>
+    <p>Mascotas: <strong>${mascotas}</strong></p>
+    <p>Inicio: ${inicio}</p>
+    <p>Fin: ${fin}</p>
+    <p>Duración: ${horas} horas</p>
+    <p>Tarifa por hora: $${tarifa}</p>
+    <p>Total: $${total}</p>
+    <p>Servicios: ${servicios}</p>
+    <hr>
+    <footer>Equipo PetConnect 🐶🐱</footer>
+    `;
+
+    // Enviar al cuidador
+    sendMail(correoCuidador, "Nuevo Servicio Asignado", mensaje);
+
+    // Enviar al dueño
+    sendMail(correoDueno, "Nuevo Servicio Registrado para tu mascota", mensaje);
+};
+
+// Enviar mail cuando un servicio cambie de estado "ACTIVO", "FINALIZADO", "CANCELADO"
+const sendMailEstadoServicio = (correoCuidador, correoDueno, mascotas, servicios, fecha_inicio, fecha_fin, estado) => {
+    const titulo = 
+        estado === "ACTIVO" ? "Servicio en curso 🐾" :
+        estado === "FINALIZADO" ? "Servicio finalizado ✅" :
+        "Servicio cancelado ❌";
+        
+    const inicio = new Date(fecha_inicio).toLocaleString();
+    const fin = new Date(fecha_fin).toLocaleString();
+
+    const mensaje = `
+    <h2>Servicio ${estado} 🐾</h2>
+    <p>Mascotas: <strong>${mascotas}</strong></p>
+    <p>Inicio: ${inicio}</p>
+    <p>Fin: ${fin}</p>
+    <p>Servicios: ${servicios}</p>
+    <hr>
+    <footer>Equipo PetConnect 🐶🐱</footer>
+    `;
+
+    sendMail(correoCuidador, `${titulo}`, mensaje);
+    sendMail(correoDueno, `${titulo}`, mensaje);
+};
+
+export{ sendMailRegistro, sendMailRegistroUsuario, sendMailReestablecerPassword, sendMailCambioPassword, sendMailRegistroMascota, sendMailEliminarDuenoMascota, sendMailServicioAsignado, sendMailEstadoServicio}

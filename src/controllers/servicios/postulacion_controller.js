@@ -3,6 +3,7 @@ import Postulacion from "../../models/servicios/Postulacion.js";
 import Anuncio from "../../models/servicios/Anuncio.js";
 import Servicio from "../../models/servicios/Servicio.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
+import { sendMailServicioAsignado } from "../../helpers/sendMail.js";
 
 // CUIDADOR
 const postularAnuncio = async (req, res) => {
@@ -178,6 +179,23 @@ const aceptarPostulacion = async (req, res) => {
         });
         
         await servicio.save();
+
+        // Enviar correo
+        const anuncioInfo = await Anuncio.findById(anuncio._id)
+            .populate("dueno_id", "email nombre")
+            .populate("cuidador_seleccionado", "email nombre")
+            .populate("mascotas", "nombre");
+
+        const correoDueno = anuncioInfo.dueno_id.email;
+        const correoCuidador = anuncioInfo.cuidador_seleccionado.email;
+        
+        const nombresMascotas = anuncioInfo.mascotas.map(m => m.nombre).join(", ");
+
+        try {
+            await sendMailServicioAsignado(correoCuidador, correoDueno, nombresMascotas, anuncio.horario.fecha_inicio, anuncio.horario.fecha_fin, horas, tarifa, total, anuncio.servicios.join(", "))
+        } catch (error) {
+            console.error("Error enviando correo:", error)
+        }
 
         res.status(200).json({
             msg: "Postulación aceptada correctamente",
