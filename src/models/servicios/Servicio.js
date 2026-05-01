@@ -31,19 +31,22 @@ const servicioSchema = new Schema({
     }],
     // Horario requerido
     horario: {
-        dia: {
-            type: String,
-            enum: ["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"],
-            required: true
-        },
-        hora_desde: {
-            type: String,
-            required: true
-        },
-        hora_hasta: {
-            type: String,
-            required: true
-        }
+        fecha_inicio: Date,
+        fecha_fin: Date
+    },
+    
+    // Precio que debe pagar el dueño por el servicio/s
+    tarifa_por_hora: {
+        type: Number,
+        required: true
+    },
+    horas: {
+        type: Number,
+        required: true
+    },
+    total: {
+        type: Number,
+        required: true
     },
 
     // Estado del servicio

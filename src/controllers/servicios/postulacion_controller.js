@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Postulacion from "../../models/servicios/Postulacion.js";
 import Anuncio from "../../models/servicios/Anuncio.js";
 import Servicio from "../../models/servicios/Servicio.js";
+import Cuidador from "../../models/usuarios/Cuidador.js";
 
 // CUIDADOR
 const postularAnuncio = async (req, res) => {
@@ -9,8 +10,16 @@ const postularAnuncio = async (req, res) => {
         // Usuario logueado
         const { _id: cuidador_id, rol } = req.usuario;
 
+        const { tarifa_por_hora } = req.body;
+
         if(rol !== "CUIDADOR"){
             return res.status(400).json({msg:"No tienes los permisos para postularte."})
+        }
+
+        const cuidador = await Cuidador.findOne({usuario: cuidador_id})
+
+        if (!cuidador){
+            return res.status(400).json({msg: "Debes configurar tu perfil de cuidador antes de postularte."})
         }
 
         // Anuncio
@@ -22,6 +31,22 @@ const postularAnuncio = async (req, res) => {
         
         if(anuncio.estado !== "ABIERTO") return res.status(400).json({msg:"No puedes postularte a este anuncio, está cerrado."})
         
+        let tarifaFinal;
+
+        if (tarifa_por_hora === undefined || tarifa_por_hora === null || tarifa_por_hora === "") {
+            if (!cuidador.tarifa_hora) {
+                return res.status(400).json({ msg: "Debes configurar tu tarifa en tu perfil" });
+            }
+            tarifaFinal = cuidador.tarifa_hora;
+        } else {
+            const tarifa = Number(tarifa_por_hora);
+        
+            if (isNaN(tarifa) || tarifa <= 0) {
+                return res.status(400).json({ msg: "Tarifa inválida" });
+            }
+            tarifaFinal = tarifa;
+        }
+
         // Evitar duplicados
         const existe = await Postulacion.findOne({
             anuncio_id,
@@ -31,11 +56,12 @@ const postularAnuncio = async (req, res) => {
         if(existe){
             return res.status(400).json({msg:"Ya te has postulado a este anuncio."})
         }
-
+        
         const postulacion = new Postulacion({
             anuncio_id, 
-            cuidador_id
-        })
+            cuidador_id,
+            tarifa_por_hora: tarifaFinal
+        });
         
         await postulacion.save()
 
@@ -100,7 +126,7 @@ const aceptarPostulacion = async (req, res) => {
         if (anuncio.estado !== "ABIERTO") return res.status(400).json({msg: "El anuncio ya está cerrado"});
 
         // Evitar duplicar el servicio
-        const existeServicio = await findOne({ anuncio_id: anuncio._id });
+        const existeServicio = await Servicio.findOne({ anuncio_id: anuncio._id });
         if (existeServicio) return res.status(400).json({ msg: "Ya existe un servicio para este anuncio" });
 
         // 1. Aceptar esta postulación
@@ -122,6 +148,19 @@ const aceptarPostulacion = async (req, res) => {
 
         await anuncio.save();
 
+        // Calcular total y duración
+        const inicio = new Date(anuncio.horario.fecha_inicio);
+        const fin = new Date(anuncio.horario.fecha_fin);
+        const horas = (fin - inicio) / (1000 * 60 * 60);
+
+        if (horas <= 0) {
+            return res.status(400).json({ msg: "Duración inválida del servicio" });
+        }
+
+        const tarifa = postulacion.tarifa_por_hora;
+        const total = Number((tarifa * horas).toFixed(2))
+
+
         // 4. crear servicio
         const servicio = new Servicio({
             dueno_id: anuncio.dueno_id,
@@ -130,6 +169,11 @@ const aceptarPostulacion = async (req, res) => {
             mascotas: anuncio.mascotas,
             servicios: anuncio.servicios,
             horario: anuncio.horario,
+
+            tarifa_por_hora:tarifa,
+            horas,
+            total,
+
             estado: "ACTIVO"
         });
         

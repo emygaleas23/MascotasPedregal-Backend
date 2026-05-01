@@ -15,6 +15,12 @@ const postulacionSchema = new Schema({
         required: true
     },
 
+    tarifa_por_hora: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+
     // Estado de la postulación
     estado: {
         type: String,

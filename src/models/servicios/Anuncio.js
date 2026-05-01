@@ -30,17 +30,12 @@ const anuncioSchema = new Schema({
 
     // Horario requerido
     horario: {
-        dia: {
-            type: String,
-            enum: ["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"],
+        fecha_inicio: {
+            type: Date,
             required: true
         },
-        hora_desde: {
-            type: String,
-            required: true
-        },
-        hora_hasta: {
-            type: String,
+        fecha_fin: {
+            type: Date,
             required: true
         }
     },
@@ -61,6 +56,13 @@ const anuncioSchema = new Schema({
 
 }, {
     timestamps: true
+});
+
+anuncioSchema.pre("save", function(next) {
+    if (this.horario.fecha_fin <= this.horario.fecha_inicio) {
+        return next(new Error("La fecha_fin debe ser mayor a fecha_inicio"));
+    }
+    next();
 });
 
 export default model("Anuncio", anuncioSchema);

@@ -63,39 +63,25 @@ const publicarAnuncio = async (req, res) => {
             return res.status(400).json({ msg: "Debes enviar un horario válido" });
         }
 
-        const { dia, hora_desde, hora_hasta } = horario;
+        const { fecha_inicio, fecha_fin } = horario;
 
-        if (!dia) {
-            return res.status(400).json({ msg: "Debes ingresar un día" });
+        if (!fecha_inicio || !fecha_fin) {
+            return res.status(400).json({ msg: "Debes ingresar una fecha de inicio y una fecha fin" });
         }
-        const diasPermitidos = ["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"];
-        const diaTrim = dia.trim().toUpperCase();
-        
-        if(!diasPermitidos.includes(diaTrim)){
-            return res.status(400).json({msg:"Debes ingresar un día válido: 'Lunes', 'Martes','Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'"})
-        }
-    
-        // Validar horas
-        if(!hora_desde || !hora_hasta) return res.status(400).json({ msg: "Debes ingresar hora desde y hasta" });
 
-        const desde = String(hora_desde).trim()
-        const hasta = String(hora_hasta).trim()
+        const inicio = new Date(fecha_inicio)
+        const fin = new Date(fecha_fin)
     
-        // Validar formato simple HH:mm
-        const horaRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        // Validar fechas
+        if(isNaN(inicio) || isNaN(fin)) return res.status(400).json({ msg: "Fechas inválidas" });
     
-        if (!horaRegex.test(desde) || !horaRegex.test(hasta)) {
-            return res.status(400).json({ msg: "Formato de hora inválido (HH:mm)" });
-        }
-    
-        if (desde >= hasta) {
-            return res.status(400).json({ msg: "La 'hora desde' debe ser menor que la 'hora hasta'" });
+        if (fin <= inicio) {
+            return res.status(400).json({ msg: "La 'fecha_fin' debe ser mayor a la 'fecha_inicio'" });
         }
     
         const horarioLimpio = {
-            dia: diaTrim,
-            hora_desde:desde,
-            hora_hasta:hasta
+            fecha_inicio:inicio,
+            fecha_fin:fin
         };
 
         // 2. Si pasa la validación, procedemos a crear
@@ -227,40 +213,26 @@ const actualizarAnuncio = async (req, res) => {
                 return res.status(400).json({ msg: "Debes enviar un horario válido" });
             }
 
-            const { dia, hora_desde, hora_hasta } = horario;
+            const { fecha_inicio, fecha_fin } = horario;
 
-            if (!dia) {
-                return res.status(400).json({ msg: "Debes ingresar un día" });
+            if (!fecha_inicio || !fecha_fin) {
+                return res.status(400).json({ msg: "Debes enviar fecha_inicio y fecha_fin" });
             }
 
-            const diasPermitidos = ["LUNES","MARTES","MIERCOLES","JUEVES","VIERNES","SABADO","DOMINGO"];
-            const diaTrim = dia.trim().toUpperCase();
+            const inicio = new Date(fecha_inicio);
+            const fin = new Date(fecha_fin);
 
-            if (!diasPermitidos.includes(diaTrim)) {
-                return res.status(400).json({ msg: "Día inválido" });
+            if (isNaN(inicio) || isNaN(fin)) {
+                return res.status(400).json({ msg: "Fechas inválidas" });
             }
 
-            if (!hora_desde || !hora_hasta) {
-                return res.status(400).json({ msg: "Debes ingresar hora desde y hasta" });
-            }
-
-            const desde = String(hora_desde).trim();
-            const hasta = String(hora_hasta).trim();
-
-            const horaRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-            if (!horaRegex.test(desde) || !horaRegex.test(hasta)) {
-                return res.status(400).json({ msg: "Formato de hora inválido (HH:mm)" });
-            }
-
-            if (desde >= hasta) {
-                return res.status(400).json({ msg: "La hora desde debe ser menor que la hora hasta" });
+            if (fin <= inicio) {
+                return res.status(400).json({ msg: "La fecha_fin debe ser mayor a fecha_inicio" });
             }
 
             anuncio.horario = {
-                dia: diaTrim,
-                hora_desde: desde,
-                hora_hasta: hasta
+                fecha_inicio: inicio,
+                fecha_fin: fin
             };
         }
 
