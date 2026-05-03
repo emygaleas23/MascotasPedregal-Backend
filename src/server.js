@@ -34,6 +34,9 @@ import compromisosRoutes from "./routers/compromisos_sanitarios/compromiso_sanit
 // Importar CRON para notificaciones automáticas
 import "./cron/cronNotificaciones.js"
 
+// Importar extras
+import extrasRoutes from "./routers/extras/datosCuriosos_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -90,6 +93,9 @@ app.use("/api/servicios", serviciosRoutes)
 
 // Rutas de compromisos sanitarios
 app.use("/api/compromisos-sanitarios", compromisosRoutes)
+
+// Ruta para datos curiosos
+app.use("/api/extras", extrasRoutes)
 
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
