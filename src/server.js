@@ -31,6 +31,9 @@ import serviciosRoutes from './routers/servicios/servicio_routes.js';
 // Importar rutas de Compromisos Sanitarios
 import compromisosRoutes from "./routers/compromisos_sanitarios/compromiso_sanitario_routes.js"
 
+// Importar CRON para notificaciones automáticas
+import "./cron/cronNotificaciones.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()

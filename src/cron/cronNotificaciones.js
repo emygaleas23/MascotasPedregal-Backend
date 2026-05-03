@@ -2,7 +2,7 @@ import cron from "node-cron";
 import compromisoSanitario from "../models/compromisos_sanitarios/compromisoSanitario.js";
 import sendMail from "../config/nodemailer.js";
 
-cron.schedule("0 9 * * *", async () => {
+cron.schedule("0 9 * * *", async () => { // Se repite todos los días a las 9 am
     console.log("Verificando compromisos sanitarios...");
 
     const hoy = new Date();
