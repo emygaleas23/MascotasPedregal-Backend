@@ -34,5 +34,11 @@ const postulacionSchema = new Schema({
 
 // Evitar que un cuidador se postule 2 veces al mismo anuncio
 postulacionSchema.index({ anuncio_id: 1, cuidador_id: 1 }, { unique: true });
+postulacionSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.__v;
+        return ret;
+    }
+});
 
 export default model("Postulacion", postulacionSchema);

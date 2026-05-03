@@ -33,7 +33,7 @@ const crearCompromiso = async (req, res) => {
         const tiposValidos = ["VACUNA", "DESPARASITACION", "CONTROL", "OTRO"];
         const tipoV = tipo.trim().toUpperCase()
         if (!tiposValidos.includes(tipoV)) {
-            return res.status(400).json({ msg: "Estado inválido" });
+            return res.status(400).json({ msg: "Tipo inválido, solo se aceptan: 'VACUNA', 'DESPARASITACION', 'CONTROL', 'OTRO' " });
         }
 
         // Validar que la fecha sea futura

@@ -58,4 +58,12 @@ const servicioSchema = new Schema({
 },{
     timestamps:true
 })
+
+servicioSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.__v;
+        return ret;
+    }
+});
+
 export default model("Servicio", servicioSchema)

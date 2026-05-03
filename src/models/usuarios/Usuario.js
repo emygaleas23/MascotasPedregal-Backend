@@ -95,4 +95,11 @@ usuarioSchema.methods.createToken = function () {
     return token;
 }
 
+usuarioSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.__v;
+        return ret;
+    }
+});
+
 export default model("Usuario", usuarioSchema);

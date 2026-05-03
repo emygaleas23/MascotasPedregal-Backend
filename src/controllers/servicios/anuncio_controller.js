@@ -69,12 +69,24 @@ const publicarAnuncio = async (req, res) => {
             return res.status(400).json({ msg: "Debes ingresar una fecha de inicio y una fecha fin" });
         }
 
+        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+        if (!isoRegex.test(fecha_inicio) || !isoRegex.test(fecha_fin)) {
+            return res.status(400).json({ msg: "Debes enviar fechas con formato ISO (YYYY-MM-DDTHH:mm)" });
+        }
+
         const inicio = new Date(fecha_inicio)
         const fin = new Date(fecha_fin)
     
         // Validar fechas
-        if(isNaN(inicio) || isNaN(fin)) return res.status(400).json({ msg: "Fechas inválidas" });
+        if(isNaN(inicio.getTime()) || isNaN(fin.getTime())) return res.status(400).json({ msg: "Fechas inválidas" });
     
+        const ahora = new Date();
+
+        if (inicio < ahora) {
+            return res.status(400).json({ msg: "La fecha de inicio no puede ser pasada" });
+        }
+        
         if (fin <= inicio) {
             return res.status(400).json({ msg: "La 'fecha_fin' debe ser mayor a la 'fecha_inicio'" });
         }
@@ -219,11 +231,23 @@ const actualizarAnuncio = async (req, res) => {
                 return res.status(400).json({ msg: "Debes enviar fecha_inicio y fecha_fin" });
             }
 
+            const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+            if (!isoRegex.test(fecha_inicio) || !isoRegex.test(fecha_fin)) {
+                return res.status(400).json({ msg: "Debes enviar fechas con formato ISO (YYYY-MM-DDTHH:mm)" });
+            }
+
             const inicio = new Date(fecha_inicio);
             const fin = new Date(fecha_fin);
 
-            if (isNaN(inicio) || isNaN(fin)) {
+            if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
                 return res.status(400).json({ msg: "Fechas inválidas" });
+            }
+
+            const ahora = new Date();
+
+            if (inicio < ahora) {
+                return res.status(400).json({ msg: "La fecha de inicio no puede ser pasada" });
             }
 
             if (fin <= inicio) {

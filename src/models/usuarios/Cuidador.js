@@ -33,4 +33,11 @@ const cuidadorSchema = new Schema({
     timestamps: true
 });
 
+cuidadorSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.__v;
+        return ret;
+    }
+});
+
 export default model("Cuidador", cuidadorSchema);

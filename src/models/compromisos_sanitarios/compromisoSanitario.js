@@ -50,4 +50,11 @@ const compromisoSchema = new Schema({
     timestamps: true
 });
 
+compromisoSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.__v;
+        return ret;
+    }
+});
+
 export default model("compromisoSanitario", compromisoSchema);
