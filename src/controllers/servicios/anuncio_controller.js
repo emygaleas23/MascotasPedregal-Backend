@@ -29,14 +29,15 @@ const publicarAnuncio = async (req, res) => {
 
         const mascotasValidas = await Mascota.find({
             _id: { $in: mascotas },
-            owner_id: dueno_id
+            owner_id: dueno_id,
+            estado: true
         });
 
         // Si la cantidad de mascotas encontradas es diferente a la cantidad enviada,
         // significa que alguna no existe o no pertenece al usuario
         if (mascotasValidas.length !== mascotas.length) {
             return res.status(400).json({ 
-                msg: "Una o más mascotas no existen o no te pertenecen." 
+                msg: "Una o más mascotas no existen, no te pertenecen o están inactivas" 
             });
         }
 
@@ -224,12 +225,13 @@ const actualizarAnuncio = async (req, res) => {
 
             const mascotasValidas = await Mascota.find({
                 _id: { $in: mascotas },
-                owner_id: duenoID
+                owner_id: duenoID,
+                estado: true
             });
 
             if (mascotasValidas.length !== mascotas.length) {
                 return res.status(400).json({ 
-                    msg: "Una o más mascotas no existen o no te pertenecen." 
+                    msg: "Una o más mascotas no existen, no te pertenecen o están inactivas." 
                 });
             }
 

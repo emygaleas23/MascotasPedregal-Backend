@@ -54,7 +54,7 @@ const detalleServicio = async (req, res) => {
                 .populate("cuidador_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas")
         } else if (rol === "CUIDADOR"){
-            servicios = await Servicio.find(servicio_id)
+            servicios = await Servicio.findById(servicio_id)
                 .populate("dueno_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas");
         }else{ return res.status(403).json({ msg: "No tienes permisos para ver servicios" });}
@@ -90,10 +90,11 @@ const actualizarEstadoServicio = async (req, res) => {
         }
 
         // Validar que sea dueño o cuidador del servicio
-        const esDueno = servicio.dueno_id.toString() === usuarioID.toString();
-        const esCuidador = servicio.cuidador_id.toString() === usuarioID.toString();
+        const esDueno = servicio.dueno_id._id.toString() === usuarioID.toString();
+        const esCuidador = servicio.cuidador_id._id.toString() === usuarioID.toString();
 
         if (!esDueno && !esCuidador) {
+            console.log(usuarioID);
             return res.status(403).json({ msg: "No tienes permisos para modificar este servicio" });
         }
 
@@ -114,9 +115,14 @@ const actualizarEstadoServicio = async (req, res) => {
             return res.status(400).json({ msg: `El servicio ya está en estado ${estadoServicio}` });
         }
 
+        // Evitar cancelar un servicio que ya ha empezado
+        if((estado === "CANCELADO" && servicio.estado === "ACTIVO") || (estado === "CANCELADO" && servicio.estado === "FINALIZADO")){
+            return res.status(400).json({msg: "No puedes cancelar un servicio que ya ha empezado"})
+        }
+
         // Evitar que un rol no permitido cambie de estado
-        if (rol === "CUIDADOR" && estadoServicio === "CANCELADO") {
-            return res.status(403).json({ msg: "El cuidador no puede cancelar el servicio" });
+        if (rol === "DUEÑO" && estadoServicio === "ACTIVO") {
+            return res.status(403).json({ msg: "El dueño no puede iniciar el servicio" });
         }
         
         if (rol === "DUEÑO" && estadoServicio === "FINALIZADO") {
