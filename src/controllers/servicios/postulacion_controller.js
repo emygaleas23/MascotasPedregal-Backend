@@ -150,8 +150,8 @@ const aceptarPostulacion = async (req, res) => {
         await anuncio.save();
 
         // Calcular total y duración
-        const inicio = new Date(anuncio.horario.fecha_inicio);
-        const fin = new Date(anuncio.horario.fecha_fin);
+        const inicio = anuncio.horario.fecha_inicio;
+        const fin = anuncio.horario.fecha_fin;
         const horas = (fin - inicio) / (1000 * 60 * 60);
 
         if (horas <= 0) {
@@ -163,6 +163,7 @@ const aceptarPostulacion = async (req, res) => {
 
 
         // 4. crear servicio
+        console.log("HORARIO ANUNCIO:", anuncio.horario);
         const servicio = new Servicio({
             dueno_id: anuncio.dueno_id,
             cuidador_id: postulacion.cuidador_id,
@@ -175,7 +176,7 @@ const aceptarPostulacion = async (req, res) => {
             horas,
             total,
 
-            estado: "ACTIVO"
+            estado: "PENDIENTE"
         });
         
         await servicio.save();
