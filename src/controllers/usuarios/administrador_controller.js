@@ -1,14 +1,17 @@
-import { sendMailRegistroUsuario } from "../../helpers/sendMail.js";
+import { sendMailReestablecerPassword, sendMailRegistroUsuario, sendMailUsuarioActivado, sendMailUsuarioDesactivado } from "../../helpers/sendMail.js";
 import Usuario from "../../models/usuarios/Usuario.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
 import mongoose from "mongoose";
+import Mascota from "../../models/mascotas/Mascota.js";
+import Anuncio from "../../models/servicios/Anuncio.js";
+import Servicio from "../../models/servicios/Servicio.js";
 
 // REGISTRO DE USUARIO: 
 const registrarUsuario = async (req, res) => {
     try {
-        const { email, password, rol, nombre, apellido, telefono } = req.body;
+        const { email, password, rol, nombre, apellido, telefono, fechaNacimiento } = req.body;
 
-        if (!email || !password || !rol || !nombre || !apellido || !telefono) {
+        if (!email || !password || !rol || !nombre || !apellido || !telefono || !fechaNacimiento) {
             return res.status(400).json({ msg: "Todos los campos son obligatorios" });
         }
 
@@ -43,11 +46,27 @@ const registrarUsuario = async (req, res) => {
             return res.status(400).json({ msg: "Lo sentimos, el teléfono ya está registrado" });
         }
 
+        // Validar fecha
+        const fecha = new Date(fechaNacimiento);
+        const hoy = new Date();
+        const anioMax = hoy.getFullYear() - 100;
+
+        const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!fechaRegex.test(fechaNacimiento)){
+            return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
+        }
+        if(fecha>hoy){
+            return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+        }
+        if(fecha.getFullYear() < anioMax ){
+            return res.status(400).json({msg:"La fecha es demasiado antigua."})
+        }
+
         // Generar contraseña
         const numsaleatorios = Math.random().toString(36).toUpperCase().slice(2,10)
         const passwordGenerado = `@Usuario${numsaleatorios}26`
 
-        const nuevoUsuario = new Usuario({email:emailLower, password: passwordGenerado, rol:rolUpper, nombre, apellido, telefono:telefono.trim()});
+        const nuevoUsuario = new Usuario({email:emailLower, password: passwordGenerado, rol:rolUpper, nombre, apellido, telefono:telefono.trim(), fechaNacimiento:fecha});
 
         const token = nuevoUsuario.createToken();
 
@@ -63,7 +82,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailRegistroUsuario(email, passwordGenerado, token); // Enviar email de confirmación
+        await sendMailRegistroUsuario(emailLower, rolUpper, passwordGenerado, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",
@@ -129,14 +148,18 @@ const detalleUsuario = async(req, res) => {
 const actualizarUsuario = async (req, res) =>{
     try{
         const {id} = req.params
-        const {nombre, apellido, telefono, estado, verificado } = req.body
+        const {nombre, apellido, telefono, fechaNacimiento, verificado } = req.body
 
         const usuario = await Usuario.findById(id);
 
         if (!usuario) return res.status(400).json({msg:`Usuario con id ${id} no encontrado`})
 
-        if(estado !== undefined) usuario.estado = estado;
-        if(verificado !== undefined) usuario.verificado = verificado;
+        if (typeof verificado === 'boolean') {
+            usuario.verificado = verificado;
+            usuario.token = null;
+        } else if (verificado !== undefined) {
+            return res.status(400).json({ msg: "El campo verificado debe ser true o false" });
+        }
         
         if(nombre){
             const nombreTrim = nombre.trim()
@@ -162,6 +185,23 @@ const actualizarUsuario = async (req, res) =>{
             if(telefonoExiste) return res.status(400).json({msg:`El teléfono ya se encuentra registrado`})
             
             usuario.telefono = telefonoTrim
+        }
+
+        if (fechaNacimiento){
+            const fecha = new Date(fechaNacimiento);
+            const hoy = new Date();
+            const anioMax = hoy.getFullYear() - 100;
+            const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!fechaRegex.test(fechaNacimiento)){
+                return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
+            }
+            if(fecha>hoy){
+                return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+            }
+            if(fecha.getFullYear() < anioMax ){
+                return res.status(400).json({msg:"La fecha es demasiado antigua."})
+            }
+            usuario.fechaNacimiento = fecha;
         }
 
         await usuario.save()
@@ -191,18 +231,87 @@ const eliminarUsuario = async (req, res) => {
             return res.status(200).json({msg:"Usuario no verificado eliminado permanentemente"})
         }
 
-        // Si el usuario está verificado, borrado lógico
-        if (!usuario.estado){
-            return res.status(400).json({ msg: "Este usuario ya se encuentra desactivado" });
+        // Si el usuario es dueño, se desactivan también las mascotas
+        if(usuario.rol === "DUEÑO"){
+            const existeEnAnuncio = await Anuncio.findOne({
+                dueno_id: id,
+                estado: "ABIERTO"
+            })
+            const existeEnServicio = await Servicio.findOne({
+                dueno_id: id,
+                estado: { $in: ["PENDIENTE", "ACTIVO"] }
+            })
+
+            if(existeEnAnuncio || existeEnServicio){
+                return res.status(400).json({msg:"No puedes desactivar un usuario con anuncios o servicios en estado activo."})
+            }
+            await Mascota.updateMany(
+                {owner_id: id},
+                {estado: false}
+            )
         }
 
+        // Si el usuario es cuidador, se desactiva su perfil cuidador
+        if(usuario.rol === "CUIDADOR"){
+            const existeEnServicio = await Servicio.findOne({
+                cuidador_id: id,
+                estado: { $in: ["PENDIENTE", "ACTIVO"] }
+            })
+
+            if (existeEnServicio) return res.status(400).json({msg:"No puedes desactivar un usuario con servicios en estado activo."})
+
+            await Cuidador.findOneAndUpdate(
+                {usuario: id},
+                {estado: false}
+            )
+        }
+
+        // Si el usuario está verificado, borrado lógico
         usuario.estado = false;
         await usuario.save();
+        await sendMailUsuarioDesactivado(usuario.email);
 
         res.status(200).json({ msg: "Usuario desactivado correctamente por el administrador" });
     } catch (error) {
         res.status(500).json({ msg: `Error en el servidor - ${error.message}` });
     }
 };
+
+const activarUsuario = async (req,res) => {
+    try{
+        const {id} = req.params
+
+        const usuario = await Usuario.findById(id);
+        if (!usuario) return res.status(404).json({ msg: "Usuario no encontrado" });
+
+        if (usuario.estado) {
+            return res.status(400).json({ msg: "Este usuario ya se encuentra activo" });
+        }
+
+        // Si el usuario es dueño, se activan también las mascotas
+        if(usuario.rol === "DUEÑO"){
+            await Mascota.updateMany(
+                {owner_id: id},
+                {estado: true}
+            )
+        }
+
+        // Si el usuario es cuidador, se activa su perfil cuidador
+        if(usuario.rol === "CUIDADOR"){
+            await Cuidador.findOneAndUpdate(
+                {usuario: id},
+                {estado: true}
+            )
+        }
+
+        usuario.estado = true;
+        await usuario.save()
+        await sendMailUsuarioActivado(usuario.email)
+
+        res.status(200).json({ msg: "Usuario activado correctamente por el administrador" });
+    }catch(error){
+        res.status(500).json({msg: `Error en el servidor - ${error.message}`})
+    }
+}
 
 export {registrarUsuario, listarUsuarios, detalleUsuario, actualizarUsuario, eliminarUsuario}

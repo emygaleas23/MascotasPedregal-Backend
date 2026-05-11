@@ -45,6 +45,10 @@ const actualizarPerfil = async (req, res) => {
                 return res.status(400).json({msg:"La tarifa no puede ser negativa."})
             }
 
+            if(tarifa>15){
+                return res.status(400).json({msg:"La tarifa no puede exceder los $15"})
+            }
+
             cuidador.tarifa_hora = tarifa
         }
 

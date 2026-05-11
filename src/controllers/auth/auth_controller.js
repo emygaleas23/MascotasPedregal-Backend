@@ -9,9 +9,9 @@ import { subirBase64Cloudinary, subirImagenCloudinary } from "../../helpers/uplo
 // REGISTRO DE USUARIO: 
 const registrarUsuario = async (req, res) => {
     try {
-        const { email, password, rol, nombre, apellido, telefono } = req.body;
+        const { email, password, rol, nombre, apellido, telefono, fechaNacimiento } = req.body;
 
-        if (!email || !password || !rol || !nombre || !apellido || !telefono) {
+        if (!email || !password || !rol || !nombre || !apellido || !telefono || !fechaNacimiento) {
             return res.status(400).json({ msg: "Todos los campos son obligatorios" });
         }
 
@@ -57,7 +57,23 @@ const registrarUsuario = async (req, res) => {
             return res.status(400).json({ msg: "Lo sentimos, el teléfono ya está registrado" });
         }
 
-        const nuevoUsuario = new Usuario({email:emailLower, password, rol:rolUpper, nombre, apellido, telefono:telefono.trim()});
+        // Validar fecha: Máximo 100 años
+        const fecha = new Date(fechaNacimiento);
+        const hoy = new Date();
+        const anioMin = hoy.getFullYear() - 100;
+
+        const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!fechaRegex.test(fechaNacimiento)){
+            return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
+        }
+        if(fecha>hoy){
+            return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+        }
+        if(fecha.getFullYear() < anioMin ){
+            return res.status(400).json({msg:"La fecha es demasiado antigua."})
+        }
+
+        const nuevoUsuario = new Usuario({email:emailLower, password, rol:rolUpper, nombre, apellido, telefono:telefono.trim(), fechaNacimiento: fecha});
 
         const token = nuevoUsuario.createToken();
 
@@ -73,7 +89,7 @@ const registrarUsuario = async (req, res) => {
             })
             await perfilCuidador.save()
         }
-        await sendMailRegistro(email, token); // Enviar email de confirmación
+        await sendMailRegistro(emailLower, rolUpper, token); // Enviar email de confirmación
 
         res.status(201).json({
             msg: "Usuario registrado correctamente. Revisa tu correo para confirmar la cuenta.",

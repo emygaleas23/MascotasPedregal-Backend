@@ -3,31 +3,34 @@ import sendMail from "../config/nodemailer.js";
 // USUARIOS
 
 // Email para cuando un usuario se registra, se le envía un correo de confirmación con un token para verificar su cuenta.
-const sendMailRegistro = (userMail, token)=>{
+const sendMailRegistro = (userMail, rol, token)=>{
     return sendMail(
         userMail,
         "¡Bienvenido a PetConnect ! 🐶🐱",
     `
             <h1>Confirma tu cuenta</h1>
             <p>Hola 👋, gracias por unirte a <strong>PetConnect </strong>.</p>
+            <p>Te haz registrado como: ${rol}</p>
             <p>Haz clic en el siguiente enlace para confirmar tu cuenta y empezar a disfrutar de todas las funciones:</p>
             <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
                 Confirmar mi cuenta
             </a>
             <hr>
+            <p>Si te haz registrado con un rol que no era, contáctate con un administrador</p>
             <footer>El equipo de PetConnect te da la más cordial bienvenida 🐾</footer>
         `,
     )
 }
 
 // Email para cuando un administrador registra a un usuario, se le envía un correo de confirmación con un token para verificar su cuenta y sus credenciales de acceso.
-const sendMailRegistroUsuario = (userMail, password, token)=>{
+const sendMailRegistroUsuario = (userMail, rol, password, token)=>{
     return sendMail(
         userMail,
         "¡Bienvenido a PetConnect ! 🐶🐱",
     `
         <h1>Confirma tu cuenta</h1>
         <p>Hola 👋, has sido registrado por un administrador en <strong>PetConnect </strong>.</p>
+        <p>Te han registrado como: ${rol}</p>
         <p>Estas son tus credenciales de acceso:</p>
         <ul>
         <li><strong>Email:</strong> ${userMail}</li>
@@ -37,8 +40,39 @@ const sendMailRegistroUsuario = (userMail, password, token)=>{
         <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
             Confirma mi cuenta
         </a>
+        <p>Si te han registrado como un rol incorrecto, contactate con un administrador</p>
         <footer>Equipo PetConnect 🐾</footer>
     `,
+    )
+}
+
+// Email para notificar que la cuenta de un usuario fue desactivada
+const sendMailUsuarioDesactivado = (userMail) =>{
+    return sendMail(
+        userMail,
+        "Cuenta desactivada",
+        `
+        <h1>PetConnect - 🐶 😺</h1>
+        <p>Tu cuenta ha sido desactivada.</p>
+        <p>Si consideras que esto es un error, comunícate con un administrador.</p>
+        <hr>
+        <footer>Equipo PetConnect 🐾</footer>
+    `
+    )
+}
+
+// Email para notificar que la cuenta de un usuario fue activada correctamente
+const sendMailUsuarioActivado= (userMail) =>{
+    return sendMail(
+        userMail,
+        "Cuenta activada",
+        `
+        <h1>PetConnect - 🐶 😺</h1>
+        <p>Tu cuenta ha sido activada correctamente.</p>
+        <p>Ya puedes iniciar sesión y disfrutar nuevamente de las de las funcionalidades.</p>
+        <hr>
+        <footer>Equipo PetConnect 🐾</footer>
+    `
     )
 }
 
@@ -155,4 +189,4 @@ const sendMailEstadoServicio = (correoCuidador, correoDueno, mascotas, servicios
     sendMail(correoDueno, `${titulo}`, mensaje);
 };
 
-export{ sendMailRegistro, sendMailRegistroUsuario, sendMailReestablecerPassword, sendMailCambioPassword, sendMailRegistroMascota, sendMailEliminarDuenoMascota, sendMailServicioAsignado, sendMailEstadoServicio}
+export{ sendMailRegistro, sendMailRegistroUsuario, sendMailUsuarioDesactivado, sendMailUsuarioActivado, sendMailReestablecerPassword, sendMailCambioPassword, sendMailRegistroMascota, sendMailEliminarDuenoMascota, sendMailServicioAsignado, sendMailEstadoServicio}

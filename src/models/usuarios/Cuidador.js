@@ -27,7 +27,12 @@ const cuidadorSchema = new Schema({
         }],
         hora_desde: String,
         hora_hasta: String,
-    }
+    },
+    estado:{
+        type:Boolean,
+        default:true,
+        required:true
+    },
 },
 {
     timestamps: true

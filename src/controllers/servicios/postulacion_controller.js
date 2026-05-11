@@ -35,7 +35,7 @@ const postularAnuncio = async (req, res) => {
         let tarifaFinal;
 
         if (tarifa_por_hora === undefined || tarifa_por_hora === null || tarifa_por_hora === "") {
-            if (!cuidador.tarifa_hora) {
+            if (!cuidador.tarifa_hora || cuidador.tarifa_hora<=0) {
                 return res.status(400).json({ msg: "Debes configurar tu tarifa en tu perfil" });
             }
             tarifaFinal = cuidador.tarifa_hora;
@@ -45,6 +45,10 @@ const postularAnuncio = async (req, res) => {
             if (isNaN(tarifa) || tarifa <= 0) {
                 return res.status(400).json({ msg: "Tarifa inválida" });
             }
+            if(tarifa>15){
+                return res.status(400).json({msg:"La tarifa no puede exceder los $15"})
+            }
+            
             tarifaFinal = tarifa;
         }
 
