@@ -1,5 +1,5 @@
 import sendMail from "../config/nodemailer.js";
-
+import emailTemplate from "./emailTemplate.js";
 // USUARIOS
 
 // Email para cuando un usuario se registra, se le envía un correo de confirmación con un token para verificar su cuenta.
