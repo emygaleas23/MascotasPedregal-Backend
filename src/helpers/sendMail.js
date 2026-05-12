@@ -1,192 +1,227 @@
 import sendMail from "../config/nodemailer.js";
 import emailTemplate from "./emailTemplate.js";
-// USUARIOS
 
-// Email para cuando un usuario se registra, se le envía un correo de confirmación con un token para verificar su cuenta.
-const sendMailRegistro = (userMail, rol, token)=>{
+// --- USUARIOS ---
+
+const sendMailRegistro = (userMail, rol, token) => {
+    const confirmationUrl = `${process.env.URL_FRONTEND}confirm-email/${token}`;
     return sendMail(
         userMail,
-        "¡Bienvenido a PetConnect ! 🐶🐱",
-    `
-            <h1>Confirma tu cuenta</h1>
-            <p>Hola 👋, gracias por unirte a <strong>PetConnect </strong>.</p>
-            <p>Te haz registrado como: ${rol}</p>
-            <p>Haz clic en el siguiente enlace para confirmar tu cuenta y empezar a disfrutar de todas las funciones:</p>
-            <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
-                Confirmar mi cuenta
-            </a>
-            <hr>
-            <p>Si te haz registrado con un rol que no era, contáctate con un administrador</p>
-            <footer>El equipo de PetConnect te da la más cordial bienvenida 🐾</footer>
-        `,
-    )
-}
-
-// Email para cuando un administrador registra a un usuario, se le envía un correo de confirmación con un token para verificar su cuenta y sus credenciales de acceso.
-const sendMailRegistroUsuario = (userMail, rol, password, token)=>{
-    return sendMail(
-        userMail,
-        "¡Bienvenido a PetConnect ! 🐶🐱",
-    `
-        <h1>Confirma tu cuenta</h1>
-        <p>Hola 👋, has sido registrado por un administrador en <strong>PetConnect </strong>.</p>
-        <p>Te han registrado como: ${rol}</p>
-        <p>Estas son tus credenciales de acceso:</p>
-        <ul>
-        <li><strong>Email:</strong> ${userMail}</li>
-        <li><strong>Contraseña:</strong>${password} </li>
-        </ul>
-        <p>Haz clic en el siguiente enlace para confirmar tu cuenta y empezar a disfrutar de todas las funciones:</p>
-        <a href="${process.env.URL_FRONTEND}confirm-email/${token}">
-            Confirma mi cuenta
-        </a>
-        <p>Si te han registrado como un rol incorrecto, contactate con un administrador</p>
-        <footer>Equipo PetConnect 🐾</footer>
-    `,
-    )
-}
-
-// Email para notificar que la cuenta de un usuario fue desactivada
-const sendMailUsuarioDesactivado = (userMail) =>{
-    return sendMail(
-        userMail,
-        "Cuenta desactivada",
-        `
-        <h1>PetConnect - 🐶 😺</h1>
-        <p>Tu cuenta ha sido desactivada.</p>
-        <p>Si consideras que esto es un error, comunícate con un administrador.</p>
-        <hr>
-        <footer>Equipo PetConnect 🐾</footer>
-    `
-    )
-}
-
-// Email para notificar que la cuenta de un usuario fue activada correctamente
-const sendMailUsuarioActivado= (userMail) =>{
-    return sendMail(
-        userMail,
-        "Cuenta activada",
-        `
-        <h1>PetConnect - 🐶 😺</h1>
-        <p>Tu cuenta ha sido activada correctamente.</p>
-        <p>Ya puedes iniciar sesión y disfrutar nuevamente de las de las funcionalidades.</p>
-        <hr>
-        <footer>Equipo PetConnect 🐾</footer>
-    `
-    )
-}
-
-// Email para reestablecer contraseña
-const sendMailReestablecerPassword = (userMail,token)=>{
-    return sendMail(
-        userMail,
-        "Reestablece tu contraseña",
-        `
-            <h1>PetConnect - 🐶 😺</h1>
-            <p>Has solicitado restablecer tu contraseña.</p>
-            <a href="${process.env.URL_FRONTEND}reset/${token}">
-            Clic para restablecer tu contraseña
-            </a>
-            <hr>
-            <footer>Equipo PetConnect 🐾</footer>
-        `
-    )
-}
-
-// Email para notificar que la contraseña ha cambiado
-const sendMailCambioPassword = (userMail) =>{
-    return sendMail(
-        userMail,
-        "Tu contraseña ha cambiado🐾",
-        `
-                <h1>PetConnect  - Tu contraseña ha cambiado</h1>
-                <hr>
-                <footer>Recuerda: tu seguridad es importante para nosotros 💫.</footer>
-            `,
-    );
-}
-
-// MASCOTAS
-
-// Email para cuando se registra una mascota a un usuario
-const sendMailRegistroMascota = (userMail, petName)=>{
-    return sendMail(
-        userMail,
-        "Se ha registrado una mascota a tu nombre 🐾",
-        `
-            <h2>Nueva mascota registrada</h2>
-            <p>Hola 👋</p>
-            <p>Se ha registrado la mascota <strong>${petName}</strong> a tu nombre en PetConnect.</p>
-            <p>Si no reconoces esta mascota, comunícate inmediatamente con el administrador.</p>
-            <hr>
-            <footer>Equipo PetConnect 🐾</footer>
-        `,
-    )
-}
-
-// Email para notificar que una mascota fue actualizada de dueño
-const sendMailEliminarDuenoMascota = (userMail, petName) => {
-    return sendMail(
-        userMail,
-        "Tu mascota ya no está registrada a tu nombre",
-        `
-            <h2>Actualización en el registro de mascotas</h2>
-            <p>Hola</p>
-            <p>La mascota <strong>${petName}</strong> ya no se encuentra registrada a tu nombre.</p>
-            <p>Si crees que esto es un error, comunícate con el administrador.</p>
-            <hr>
-            <footer>Equipo PetConnect 🐾</footer>
-        `
+        "Confirma tu cuenta - PetConnect",
+        emailTemplate(
+            "¡Bienvenido a la comunidad!",
+            `
+            <p style="margin-top: 0;">Hola,</p>
+            <p>Gracias por registrarte en <strong>PetConnect</strong>. Tu cuenta ha sido creada exitosamente con el perfil de: <strong>${rol}</strong>.</p>
+            <p>Para activar tu cuenta, por favor haz clic en el siguiente botón:</p>
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${confirmationUrl}" style="background-color: #A88F77; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                    Confirmar mi cuenta
+                </a>
+            </div>
+            <p style="font-size: 13px; color: #B2A69A; border-top: 1px solid #EAE1D9; padding-top: 20px;">
+                Si tienes problemas con el botón, copia este enlace: <br>
+                <span style="color: #A88F77;">${confirmationUrl}</span>
+            </p>
+            <div style="font-size: 13px; color: #B2A69A; border-top: 1px solid #EAE1D9; padding-top: 25px; margin-top: 35px;">
+                <p style="margin-bottom: 10px;">
+                    <strong>¿No esperabas este correo?</strong> Si no has solicitado el registro en nuestra plataforma o crees que se trata de un error, por favor ignora este mensaje con total seguridad; la cuenta no se activará si no haces clic en el botón.
+                </p>
+            </div>
+            `
+        )
     );
 };
 
-// Email para notificar que un servicio fue creado
+const sendMailRegistroUsuario = (userMail, rol, password, token) => {
+    const confirmationUrl = `${process.env.URL_FRONTEND}confirm-email/${token}`;
+    return sendMail(
+        userMail,
+        "Confirma tu cuenta - PetConnect",
+        emailTemplate(
+            "¡Bienvenido a la comunidad!",
+            `
+            <p style="margin-top: 0;">Hola,</p>
+            <p>Un administrador te ha registrado con el perfil de: <strong>${rol}</strong>.</p>
+            <div style="background-color: #FBF9F6; border: 1px solid #E9E1DA; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Email:</strong> ${userMail}</p>
+                <p style="margin: 0; font-size: 14px;"><strong>Contraseña temporal:</strong> ${password}</p>
+            </div>
+            <p>Haz clic abajo para confirmar tu cuenta e iniciar sesión:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationUrl}" style="background-color: #A88F77; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                    Confirmar y Activar
+                </a>
+            </div>
+            <div style="font-size: 13px; color: #B2A69A; border-top: 1px solid #EAE1D9; padding-top: 25px; margin-top: 35px;">
+                <p style="margin-bottom: 10px;">
+                    <strong>¿No esperabas este correo?</strong> Si no has solicitado el registro en nuestra plataforma o crees que se trata de un error, por favor ignora este mensaje con total seguridad; la cuenta no se activará si no haces clic en el botón.
+                </p>
+                <p style="margin: 0;">
+                    <strong>Nota:</strong> Te recomendamos cambiar tu contraseña temporal una vez que hayas ingresado a tu panel.
+                </p>
+            </div>
+            `
+        )
+    );
+};
+
+const sendMailUsuarioDesactivado = (userMail) => {
+    return sendMail(
+        userMail,
+        "Cuenta desactivada - PetConnect",
+        emailTemplate(
+            "Estado de cuenta",
+            `
+            <p style="margin-top: 0;">Tu cuenta en <strong>PetConnect</strong> ha sido desactivada.</p>
+            <p>Si consideras que esto es un error o deseas conocer los motivos, por favor comunícate con un administrador del sistema.</p>
+            `
+        )
+    );
+};
+
+const sendMailUsuarioActivado = (userMail) => {
+    return sendMail(
+        userMail,
+        "Cuenta activada - PetConnect",
+        emailTemplate(
+            "¡Cuenta lista!",
+            `
+            <p style="margin-top: 0;">Tu cuenta ha sido <strong>activada correctamente</strong>.</p>
+            <p>Ya puedes iniciar sesión nuevamente y disfrutar de todas las funcionalidades de nuestra plataforma.</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.URL_FRONTEND}" style="background-color: #A88F77; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                    Ir al Panel
+                </a>
+            </div>
+            `
+        )
+    );
+};
+
+const sendMailReestablecerPassword = (userMail, token) => {
+    const resetUrl = `${process.env.URL_FRONTEND}reset/${token}`;
+    return sendMail(
+        userMail,
+        "Restablece tu contraseña - PetConnect",
+        emailTemplate(
+            "Recuperar acceso",
+            `
+            <p style="margin-top: 0;">Has solicitado restablecer tu contraseña en PetConnect.</p>
+            <p>Haz clic en el botón para generar una nueva:</p>
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="${resetUrl}" style="background-color: #A88F77; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                    Restablecer contraseña
+                </a>
+            </div>
+            <p style="font-size: 13px; color: #B2A69A;">Si no solicitaste este cambio, puedes ignorar este mensaje.</p>
+            `
+        )
+    );
+};
+
+const sendMailCambioPassword = (userMail) => {
+    return sendMail(
+        userMail,
+        "Seguridad: Cambio de contraseña - PetConnect",
+        emailTemplate(
+            "Contraseña actualizada",
+            `
+            <p style="margin-top: 0;">Te informamos que la contraseña de tu cuenta ha sido <strong>cambiada exitosamente</strong>.</p>
+            <p>Si no realizaste esta acción, por favor contáctate de inmediato con el administrador.</p>
+            <p style="color: #A88F77; font-weight: bold;">Tu seguridad es nuestra prioridad. 💫</p>
+            `
+        )
+    );
+};
+
+// --- MASCOTAS ---
+
+const sendMailRegistroMascota = (userMail, petName) => {
+    return sendMail(
+        userMail,
+        "Nueva mascota registrada 🐾",
+        emailTemplate(
+            "¡Nueva mascota!",
+            `
+            <p style="margin-top: 0;">Hola,</p>
+            <p>Se ha registrado a <strong>${petName}</strong> bajo tu nombre en PetConnect.</p>
+            <p>Ahora puedes gestionar sus servicios y cuidados desde tu panel personal.</p>
+            <p style="font-size: 13px; color: #B2A69A; margin-top: 20px;">Si no reconoces este registro, contacta con la administración.</p>
+            `
+        )
+    );
+};
+
+const sendMailEliminarDuenoMascota = (userMail, petName) => {
+    return sendMail(
+        userMail,
+        "Actualización de registro de mascota",
+        emailTemplate(
+            "Aviso de actualización",
+            `
+            <p style="margin-top: 0;">Te informamos que la mascota <strong>${petName}</strong> ya no se encuentra vinculada a tu nombre en nuestra plataforma.</p>
+            <p>Si consideras que esto es un error, por favor comunícate con un administrador.</p>
+            `
+        )
+    );
+};
+
+// --- SERVICIOS ---
+
 const sendMailServicioAsignado = (correoCuidador, correoDueno, mascotas, fecha_inicio, fecha_fin, horas, tarifa, total, servicios) => {
     const inicio = new Date(fecha_inicio).toLocaleString();
     const fin = new Date(fecha_fin).toLocaleString();
 
-    const mensaje = `
-    <h2>Nuevo Servicio Registrado 🐾</h2>
-    <p>Mascotas: <strong>${mascotas}</strong></p>
-    <p>Inicio: ${inicio}</p>
-    <p>Fin: ${fin}</p>
-    <p>Duración: ${horas} horas</p>
-    <p>Tarifa por hora: $${tarifa}</p>
-    <p>Total: $${total}</p>
-    <p>Servicios: ${servicios}</p>
-    <hr>
-    <footer>Equipo PetConnect 🐶🐱</footer>
+    const content = `
+    <h3 style="color: #A88F77; margin-top: 0;">Detalles del Servicio 🐾</h3>
+    <div style="background-color: #FBF9F6; border: 1px solid #E9E1DA; border-radius: 8px; padding: 20px;">
+        <p style="margin: 5px 0;"><strong>Mascotas:</strong> ${mascotas}</p>
+        <p style="margin: 5px 0;"><strong>Servicios:</strong> ${servicios}</p>
+        <p style="margin: 5px 0;"><strong>Inicio:</strong> ${inicio}</p>
+        <p style="margin: 5px 0;"><strong>Fin:</strong> ${fin}</p>
+        <p style="margin: 5px 0;"><strong>Tarifa por hora:</strong> ${tarifa}</p>
+        <p style="margin: 15px 0 5px 0; font-size: 18px; color: #5C554E;"><strong>Total: $${total}</strong></p>
+    </div>
     `;
 
-    // Enviar al cuidador
-    sendMail(correoCuidador, "Nuevo Servicio Asignado", mensaje);
-
-    // Enviar al dueño
-    sendMail(correoDueno, "Nuevo Servicio Registrado para tu mascota", mensaje);
+    sendMail(correoCuidador, "Nuevo Servicio Asignado", emailTemplate("Tienes un nuevo servicio asignado", content));
+    sendMail(correoDueno, "Nuevo Servicio Registrado", emailTemplate("Nuevo servicio para tu mascota", content));
 };
 
-// Enviar mail cuando un servicio cambie de estado "ACTIVO", "FINALIZADO", "CANCELADO"
 const sendMailEstadoServicio = (correoCuidador, correoDueno, mascotas, servicios, fecha_inicio, fecha_fin, estado) => {
-    const titulo = 
-        estado === "ACTIVO" ? "Servicio en curso 🐾" :
-        estado === "FINALIZADO" ? "Servicio finalizado ✅" :
-        "Servicio cancelado ❌";
-        
+    const titulos = {
+        "ACTIVO": "Servicio en curso 🐾",
+        "FINALIZADO": "Servicio finalizado ✅",
+        "CANCELADO": "Servicio cancelado ❌"
+    };
+
     const inicio = new Date(fecha_inicio).toLocaleString();
     const fin = new Date(fecha_fin).toLocaleString();
 
-    const mensaje = `
-    <h2>Servicio ${estado} 🐾</h2>
-    <p>Mascotas: <strong>${mascotas}</strong></p>
-    <p>Inicio: ${inicio}</p>
-    <p>Fin: ${fin}</p>
-    <p>Servicios: ${servicios}</p>
-    <hr>
-    <footer>Equipo PetConnect 🐶🐱</footer>
+    const content = `
+    <h3 style="color: #A88F77; margin-top: 0;">Estado: ${estado}</h3>
+    <div style="background-color: #FBF9F6; border: 1px solid #E9E1DA; border-radius: 8px; padding: 20px;">
+        <p><strong>Mascotas:</strong> ${mascotas}</p>
+        <p><strong>Servicios:</strong> ${servicios}</p>
+        <p><strong>Inicio:</strong> ${inicio}</p>
+        <p><strong>Fin:</strong> ${fin}</p>
+    </div>
     `;
 
-    sendMail(correoCuidador, `${titulo}`, mensaje);
-    sendMail(correoDueno, `${titulo}`, mensaje);
+    sendMail(correoCuidador, titulos[estado] || "Actualización de Servicio", emailTemplate("Actualización de estado", content));
+    sendMail(correoDueno, titulos[estado] || "Actualización de Servicio", emailTemplate("Actualización de estado", content));
 };
 
-export{ sendMailRegistro, sendMailRegistroUsuario, sendMailUsuarioDesactivado, sendMailUsuarioActivado, sendMailReestablecerPassword, sendMailCambioPassword, sendMailRegistroMascota, sendMailEliminarDuenoMascota, sendMailServicioAsignado, sendMailEstadoServicio}
+export { 
+    sendMailRegistro, 
+    sendMailRegistroUsuario, 
+    sendMailUsuarioDesactivado, 
+    sendMailUsuarioActivado, 
+    sendMailReestablecerPassword, 
+    sendMailCambioPassword, 
+    sendMailRegistroMascota, 
+    sendMailEliminarDuenoMascota, 
+    sendMailServicioAsignado, 
+    sendMailEstadoServicio 
+};
