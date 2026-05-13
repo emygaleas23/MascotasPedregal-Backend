@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import compromisoSanitario from "../models/compromisos_sanitarios/compromisoSanitario.js";
 import sendMail from "../config/nodemailer.js";
+import emailTemplate from "../helpers/emailTemplate.js";
 
 cron.schedule("0 9 * * *", async () => { // Se repite todos los días a las 9 am
     console.log("Verificando compromisos sanitarios...");
@@ -51,17 +52,34 @@ cron.schedule("0 9 * * *", async () => { // Se repite todos los días a las 9 am
                 : `Faltan ${diasRestantes} días`;
 
             const mensaje = `
-                <h2>Recordatorio Sanitario 🐾</h2>
-                <p>${mensajeExtra}</p>
-                <p>Hola ${dueno.nombre},</p>
-                <p>Tu mascota <strong>${mascota.nombre}</strong> tiene un compromiso pendiente:</p>
-                <p><strong>Tipo:</strong> ${c.tipo}</p>
-                <p><strong>Fecha:</strong> ${c.proxima_fecha.toLocaleDateString()}</p>
-                <hr>
-                <footer>PetConnect 🐶🐱</footer>
+                <p style="margin-top: 0;">
+                    Hola <strong>${dueno.nombre}</strong>, 
+                </p>
+                <p>
+                Queremos recordarte que tu mascota
+                <strong>${mascota.nombre}</strong>
+                tiene un compromiso sanitario pendiente.
+                </p> 
+                <div style=" background-color: #FBF9F6; border: 1px solid #E9E1DA; border-radius: 10px; padding: 22px; margin: 30px 0; ">
+                    <p style=" margin-top: 0; color: #A88F77; font-weight: bold; font-size: 16px; "> 
+                    ${mensajeExtra}
+                    </p> 
+                    <p style="margin: 10px 0;">
+                        <strong>Mascota:</strong> ${mascota.nombre}
+                    </p>
+                    <p style="margin: 10px 0;">
+                        <strong>Compromiso:</strong> ${c.tipo}
+                    </p>
+                    <p style="margin: 10px 0;">
+                        <strong>Fecha programada:</strong> ${c.proxima_fecha.toLocaleDateString()} 
+                    </p>
+                </div> 
+                <p style=" font-size: 14px; color: #8B7D70; "> 
+                    Mantener al día los compromisos sanitarios ayuda a garantizar el bienestar y cuidado adecuado de tu mascota 🐾 
+                </p>                
             `;
 
-            await sendMail(dueno.email, "Recordatorio de compromiso sanitario", mensaje);
+            await sendMail(dueno.email, "Recordatorio de compromiso sanitario", emailTemplate("Compromiso sanitario pendiente",mensaje));
 
             c.recordatorios_enviados.push(diasRestantes);
             await c.save();
