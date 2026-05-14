@@ -348,43 +348,63 @@ const eliminarMascota = async (req, res) => {
         const mascota = await Mascota.findById(id)
         if(!mascota) return res.status(400).json({msg:"No se ha encontrado la mascota."})
 
-        if(rol === "ADMINISTRADOR"){
-            mascota.estado = false;
-            await mascota.save()
-            return res.status(200).json({msg:"Mascota desactivada correctamente"})
-        }else if(rol === "DUEÑO"){
-            if(mascota.owner_id.toString() !== req.usuario._id.toString()){
-                return res.status(400).json({msg:"No puedes eliminar una mascota que no te pertenece."})
-            }
-
-            // Validar si existe en anuncio
-            const existeEnAnuncio = await Anuncio.findOne({
-                mascotas: id,
-                estado: "ABIERTO"
-            })
-
-            // Validacion si la mascota tiene servicios activos o pendientes
-            const existeEnServicio = await Servicio.findOne({
-                mascotas: id,
-                estado: { $in: ["PENDIENTE", "ACTIVO"] }
-            })
-            
-            if (existeEnServicio || existeEnAnuncio) {
-                return res.status(400).json({
-                    msg: "No puedes eliminar una mascota que está en uso (servicio o anuncio activo)"
-                });
-            }
-            mascota.estado = false
-
-            await mascota.save()
-            return res.status(200).json({msg:"Mascota eliminada con éxito."})
-        }else{
-            return res.status(404).json({msg:`No tienes permisos para eliminar esta mascota.`});
+        // Solo dueño propietario o admin
+        if ( rol !== "ADMINISTRADOR" && mascota.owner_id.toString() !== usuarioID.toString()) {
+            return res.status(403).json({msg: "No tienes permisos para eliminar esta mascota."});
         }
+
+        // Validar si existe en anuncio
+        const existeEnAnuncio = await Anuncio.findOne({
+            mascotas: id,
+            estado: "ABIERTO"
+        })
+
+        // Validacion si la mascota tiene servicios activos o pendientes
+        const existeEnServicio = await Servicio.findOne({
+            mascotas: id,
+            estado: { $in: ["PENDIENTE", "ACTIVO"] }
+        })
+        
+        if (existeEnServicio || existeEnAnuncio) {
+            return res.status(400).json({
+                msg: "No puedes eliminar una mascota que está en uso (servicio o anuncio activo)"
+            });
+        }
+
+        mascota.estado = false
+        await mascota.save()
+        return res.status(200).json({msg:"Mascota desactivada correctamente."})
 
     }catch (error){
         res.status(500).json({msg:`Error en el servidor - ${error}`})
     }
 }
 
-export {registroMascota,listarMascotas, detalleMascota, actualizarMascota, actualizarDueno, eliminarMascota}
+const activarMascota = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rol } = req.usuario;
+
+        if (rol !== "ADMINISTRADOR") {
+            return res.status(403).json({ msg: "No tienes permisos para activar una mascota." });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({ msg: `El ID ${id} de la mascota no es válido` });
+        
+        const mascota = await Mascota.findById(id);
+        if (!mascota) return res.status(400).json({ msg: "No se ha encontrado la mascota." });
+
+        if (mascota.estado) {
+            return res.status(400).json({ msg: "Esta mascota ya se encuentra activa" });
+        }
+
+        mascota.estado = true;
+        await mascota.save();
+        
+        return res.status(200).json({ msg: "Mascota activada correctamente" });
+    } catch (error) {
+        res.status(500).json({ msg: `Error en el servidor - ${error}` });
+    }
+}
+
+export {registroMascota,listarMascotas, detalleMascota, actualizarMascota, actualizarDueno, eliminarMascota, activarMascota}

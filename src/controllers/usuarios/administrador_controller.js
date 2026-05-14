@@ -314,4 +314,4 @@ const activarUsuario = async (req,res) => {
     }
 }
 
-export {registrarUsuario, listarUsuarios, detalleUsuario, actualizarUsuario, eliminarUsuario}
+export {registrarUsuario, listarUsuarios, detalleUsuario, actualizarUsuario, eliminarUsuario, activarUsuario}

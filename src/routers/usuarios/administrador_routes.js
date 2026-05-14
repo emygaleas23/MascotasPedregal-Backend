@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyToken } from "../../middlewares/JWT.js";
 import { esAdmin } from "../../middlewares/rol.js";
-import { actualizarUsuario, detalleUsuario, eliminarUsuario, listarUsuarios, registrarUsuario } from "../../controllers/usuarios/administrador_controller.js";
+import { actualizarUsuario, detalleUsuario, eliminarUsuario, listarUsuarios, registrarUsuario, activarUsuario } from "../../controllers/usuarios/administrador_controller.js";
 
 const router = Router()
 router.use(verifyToken,esAdmin)
@@ -15,6 +15,8 @@ router.get("/detalle-usuario/:id", detalleUsuario)
 router.patch("/actualizar-usuario/:id", actualizarUsuario)
 
 router.delete("/eliminar-usuario/:id",eliminarUsuario)
+
+router.patch("/activar-usuario/:id",activarUsuario)
 
 
 export default router;
