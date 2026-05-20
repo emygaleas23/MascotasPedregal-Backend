@@ -60,7 +60,7 @@ const registrarUsuario = async (req, res) => {
         // Validar fecha
         const fecha = new Date(fechaNacimiento);
         const hoy = new Date();
-        const anioMin = hoy.getFullYear() - 100;
+        const anioMax = hoy.getFullYear() - 100;
         const anioMin = hoy.getFullYear() - 16;
 
         const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -70,7 +70,7 @@ const registrarUsuario = async (req, res) => {
         if(fecha>hoy){
             return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
         }
-        if(fecha.getFullYear() < anioMin ){
+        if(fecha.getFullYear() < anioMax ){
             return res.status(400).json({msg:"La fecha es demasiado antigua."})
         }
         if (fecha.getFullYear() > anioMin){
