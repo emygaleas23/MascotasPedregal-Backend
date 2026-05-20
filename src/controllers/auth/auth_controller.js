@@ -318,14 +318,22 @@ const actualizarPerfil = async (req, res) =>{
             usuario.telefono = telefonoTrim;
         }
         if (fechaNacimiento){
-            const fecha = new Date(fechaNacimiento);
-            const hoy = new Date();
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
             if (!fechaRegex.test(fechaNacimiento)){
                 return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
             }
+            const fecha = new Date(fechaNacimiento);
+            const hoy = new Date();
+            const anioMax = hoy.getFullYear() - 100;
+            const anioMin = hoy.getFullYear() - 16;
             if(fecha>hoy){
                 return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+            }
+            if(fecha.getFullYear() < anioMax ){
+                return res.status(400).json({msg:"La fecha es demasiado antigua."})
+            }
+            if (fecha.getFullYear() > anioMin){
+                return res.status(400).json({msg:"No cumple con la edad mínima."})
             }
             usuario.fechaNacimiento = fechaNacimiento;
         }
