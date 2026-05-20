@@ -61,14 +61,18 @@ const registroMascota = async(req, res) =>{
         }
 
         if(fecha_nacimiento){
-            const fecha = new Date(fecha_nacimiento);
-            const hoy = new Date();
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
             if (!fechaRegex.test(fecha_nacimiento.trim())){
                 return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
             }
+            const fecha = new Date(fecha_nacimiento);
+            const hoy = new Date();
             if(fecha>hoy){
                 return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
+            }
+            const anioMax = hoy.getFullYear() - 30;
+            if(fecha.getFullYear() < anioMax){
+                return res.status(400).json({msg:"La fecha de nacimiento excede la edad máxima permitida."})
             }
         }
 
@@ -228,17 +232,20 @@ const actualizarMascota = async (req, res) => {
             mascotaActualizar.tamano = tamanoMayus
         }
 
-        if (fecha_nacimiento){
-            const fecha = new Date(fecha_nacimiento);
-            const hoy = new Date();
+        if(fecha_nacimiento){
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!fechaRegex.test(fecha_nacimiento)){
+            if (!fechaRegex.test(fecha_nacimiento.trim())){
                 return res.status(400).json({msg: "El formato de fecha no es válido, debe ser YYYY-MM-DD"})
             }
+            const fecha = new Date(fecha_nacimiento);
+            const hoy = new Date();
             if(fecha>hoy){
                 return res.status(400).json({msg: "La fecha de nacimiento no puede ser en el futuro."})
             }
-            mascotaActualizar.fecha_nacimiento = fecha_nacimiento;
+            const anioMax = hoy.getFullYear() - 30;
+            if(fecha.getFullYear() < anioMax){
+                return res.status(400).json({msg:"La fecha de nacimiento excede la edad máxima permitida."})
+            }
         }
 
         // 4. Manejo de imagen (si el admin o dueño sube una foto)

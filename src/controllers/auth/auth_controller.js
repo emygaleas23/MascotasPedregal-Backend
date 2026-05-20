@@ -57,10 +57,11 @@ const registrarUsuario = async (req, res) => {
             return res.status(400).json({ msg: "Lo sentimos, el teléfono ya está registrado" });
         }
 
-        // Validar fecha: Máximo 100 años
+        // Validar fecha
         const fecha = new Date(fechaNacimiento);
         const hoy = new Date();
         const anioMin = hoy.getFullYear() - 100;
+        const anioMin = hoy.getFullYear() - 16;
 
         const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!fechaRegex.test(fechaNacimiento)){
@@ -71,6 +72,9 @@ const registrarUsuario = async (req, res) => {
         }
         if(fecha.getFullYear() < anioMin ){
             return res.status(400).json({msg:"La fecha es demasiado antigua."})
+        }
+        if (fecha.getFullYear() > anioMin){
+            return res.status(400).json({msg:"No tiene la edad mínima para registrarse."})
         }
 
         const nuevoUsuario = new Usuario({email:emailLower, password, rol:rolUpper, nombre, apellido, telefono:telefono.trim(), fechaNacimiento: fecha});

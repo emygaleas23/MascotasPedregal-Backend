@@ -50,6 +50,7 @@ const registrarUsuario = async (req, res) => {
         const fecha = new Date(fechaNacimiento);
         const hoy = new Date();
         const anioMax = hoy.getFullYear() - 100;
+        const anioMin = hoy.getFullYear() - 16;
 
         const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!fechaRegex.test(fechaNacimiento)){
@@ -60,6 +61,9 @@ const registrarUsuario = async (req, res) => {
         }
         if(fecha.getFullYear() < anioMax ){
             return res.status(400).json({msg:"La fecha es demasiado antigua."})
+        }
+        if (fecha.getFullYear() > anioMin){
+            return res.status(400).json({msg:"El usuario no tiene la edad mínima para el registro"})
         }
 
         // Generar contraseña
