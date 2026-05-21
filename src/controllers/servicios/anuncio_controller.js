@@ -133,6 +133,31 @@ const listarAnuncios = async (req, res) => {
     }
 }
 
+const listarAnunciosPropios = async (req, res) => {
+    try {
+        const { _id: duenoID, rol } = req.usuario;
+
+        if (rol !== "DUEÑO") {
+            return res.status(403).json({
+                msg: "Solo los dueños pueden ver sus anuncios"
+            });
+        }
+
+        const anuncios = await Anuncio.find({
+            dueno_id: duenoID
+        })
+        .populate("mascotas")
+        .populate("dueno_id", "nombre apellido");
+
+        res.status(200).json(anuncios);
+
+    } catch (error) {
+        res.status(500).json({
+            msg: `Error en el servidor - ${error.message}`
+        });
+    }
+};
+
 const detalleAnuncio = async (req, res) => {
     try{
         const { anuncio_id } = req.params;
@@ -324,4 +349,4 @@ const eliminarAnuncio = async (req, res) => {
         res.status(500).json({ msg: `Error en el servidor - ${error}` });
     }
 }
-export {publicarAnuncio, listarAnuncios, detalleAnuncio, actualizarAnuncio, eliminarAnuncio}
+export {publicarAnuncio, listarAnuncios, listarAnunciosPropios, detalleAnuncio, actualizarAnuncio, eliminarAnuncio}
