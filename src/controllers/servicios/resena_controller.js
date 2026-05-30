@@ -87,10 +87,7 @@ const crearResena = async (req, res) => {
 
         await nuevaResena.save();
 
-        return res.status(201).json({
-            msg: "Reseña registrada correctamente.",
-            resena: nuevaResena
-        });
+        return res.status(201).json({ msg: "Reseña registrada correctamente."});
 
     } catch (error) {
         console.log(error);
