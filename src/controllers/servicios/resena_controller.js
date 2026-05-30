@@ -221,10 +221,7 @@ const editarResena = async (req, res) => {
 
         await resena.save();
 
-        return res.status(200).json({
-            msg: "Reseña actualizada correctamente.",
-            resena
-        });
+        return res.status(200).json({msg: "Reseña actualizada correctamente."});
 
     } catch (error) {
         console.log(error);
