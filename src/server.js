@@ -37,6 +37,9 @@ import "./cron/cronNotificaciones.js"
 // Importar extras
 import extrasRoutes from "./routers/extras/datosCuriosos_routes.js"
 
+// Importar rutas de reseñas
+import resenaRoutes from "./routers/servicios/resena_routes.js"
+
 // Inicializaciones
 const app = express()
 dotenv.config()
@@ -97,6 +100,8 @@ app.use("/api/compromisos-sanitarios", compromisosRoutes)
 // Ruta para datos curiosos
 app.use("/api/extras", extrasRoutes)
 
+// Rutas de reseñas
+app.use("/api/resenas", resenaRoutes)
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
     res.status(404).json({ msg: "Ruta no encontrada" });

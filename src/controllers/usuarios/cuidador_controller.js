@@ -174,4 +174,21 @@ const listarCuidadores = async(req, res) =>{
     }
 }
 
-export {actualizarPerfil, actualizarPortada, listarCuidadores}
+const obtenerCuidador = async(req, res) =>{
+    try{
+        const {cuidador_id} = req.params
+
+        const cuidador = await Cuidador.findById(cuidador_id).populate({
+            path: "usuario",
+            match: { estado:true},
+            select: "nombre apellido email telefono avatar_url"
+        })
+
+        if (!cuidador) return res.status(404).json({msg: "Cuidador no encontrado."})
+        res.status(200).json(cuidador)
+    }catch(error){
+        res.status(500).json({msg:`Error en el servidor - ${error}`})
+    }
+}
+
+export {actualizarPerfil, actualizarPortada, listarCuidadores, obtenerCuidador}
