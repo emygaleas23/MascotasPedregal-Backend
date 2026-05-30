@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Resena from "../../models/servicios/resena.js";
+import Resena from "../../models/servicios/Resena.js";
 import Servicio from "../../models/servicios/Servicio.js";
 
 const crearResena = async (req, res) => {
