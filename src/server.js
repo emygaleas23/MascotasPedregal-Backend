@@ -32,7 +32,7 @@ import serviciosRoutes from './routers/servicios/servicio_routes.js';
 import compromisosRoutes from "./routers/compromisos_sanitarios/compromiso_sanitario_routes.js"
 
 // Importar CRON para notificaciones automáticas
-import "./cron/cronNotificaciones.js"
+import cronRouter from "./cron/cronRoutes.js"
 
 // Importar extras
 import extrasRoutes from "./routers/extras/datosCuriosos_routes.js"
@@ -102,6 +102,9 @@ app.use("/api/extras", extrasRoutes)
 
 // Rutas de reseñas
 app.use("/api/resenas", resenaRoutes)
+
+app.use("/api/cron", cronRouter)
+
 // Manejo de una ruta no encontrada
 app.use((req, res) => {
     res.status(404).json({ msg: "Ruta no encontrada" });
