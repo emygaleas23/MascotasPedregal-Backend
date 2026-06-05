@@ -3,6 +3,49 @@ import Mascota from "../../models/mascotas/Mascota.js";
 import mongoose from "mongoose";
 import Postulacion from "../../models/servicios/Postulacion.js";
 
+const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
+
+const obtenerMinutosDesdeFecha = (fecha) => {
+    const horaTexto = fecha.split("T")[1]; // "09:30" o "09:30:00"
+    const [hora, minuto] = horaTexto.split(":").map(Number);
+
+    return hora * 60 + minuto;
+};
+
+const validarHorarioPermitido = (fecha_inicio, fecha_fin) => {
+    if (fecha_inicio.endsWith("Z") || fecha_fin.endsWith("Z")) {
+        return "No envíes fechas en UTC (Z), usa formato local";
+    }
+
+    if (!isoRegex.test(fecha_inicio) || !isoRegex.test(fecha_fin)) {
+        return "Debes enviar fechas con formato ISO (YYYY-MM-DDTHH:mm)";
+    }
+
+    const inicioMinutos = obtenerMinutosDesdeFecha(fecha_inicio);
+    const finMinutos = obtenerMinutosDesdeFecha(fecha_fin);
+
+    const horaMinima = 5 * 60;   // 05:00
+    const horaMaxima = 22 * 60;  // 22:00
+
+    if (inicioMinutos < horaMinima) {
+        return "La hora de inicio no puede ser antes de las 05:00.";
+    }
+
+    if (inicioMinutos > horaMaxima) {
+        return "La hora de inicio no puede ser después de las 22:00.";
+    }
+
+    if (finMinutos < horaMinima) {
+        return "La hora de fin no puede ser antes de las 05:00.";
+    }
+
+    if (finMinutos > horaMaxima) {
+        return "La hora de fin no puede ser después de las 22:00.";
+    }
+
+    return null;
+};
+
 const publicarAnuncio = async (req, res) => {
     try{
         const { rol, _id: dueno_id } = req.usuario;
@@ -71,16 +114,10 @@ const publicarAnuncio = async (req, res) => {
             return res.status(400).json({ msg: "Debes ingresar una fecha de inicio y una fecha fin" });
         }
 
-        if (fecha_inicio.endsWith("Z") || fecha_fin.endsWith("Z")) {
-            return res.status(400).json({
-                msg: "No envíes fechas en UTC (Z), usa formato local"
-            });
-        }
+        const errorHorario = validarHorarioPermitido(fecha_inicio, fecha_fin);
 
-        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
-
-        if (!isoRegex.test(fecha_inicio) || !isoRegex.test(fecha_fin)) {
-            return res.status(400).json({ msg: "Debes enviar fechas con formato ISO (YYYY-MM-DDTHH:mm)" });
+        if (errorHorario) {
+            return res.status(400).json({ msg: errorHorario });
         }
 
         const inicio = new Date(fecha_inicio)
@@ -98,6 +135,7 @@ const publicarAnuncio = async (req, res) => {
         if (fin <= inicio) {
             return res.status(400).json({ msg: "La 'fecha_fin' debe ser mayor a la 'fecha_inicio'" });
         }
+
     
         const horarioLimpio = {
             fecha_inicio:inicio,
@@ -276,16 +314,10 @@ const actualizarAnuncio = async (req, res) => {
                 return res.status(400).json({ msg: "Debes enviar fecha_inicio y fecha_fin" });
             }
 
-            const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
+            const errorHorario = validarHorarioPermitido(fecha_inicio, fecha_fin);
 
-            if (!isoRegex.test(fecha_inicio) || !isoRegex.test(fecha_fin)) {
-                return res.status(400).json({ msg: "Debes enviar fechas con formato ISO (YYYY-MM-DDTHH:mm)" });
-            }
-
-            if (fecha_inicio.endsWith("Z") || fecha_fin.endsWith("Z")) {
-                return res.status(400).json({
-                    msg: "No envíes fechas en UTC (Z), usa formato local"
-                });
+            if (errorHorario) {
+                return res.status(400).json({ msg: errorHorario });
             }
 
             const inicio = new Date(fecha_inicio);

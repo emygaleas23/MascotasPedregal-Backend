@@ -8,7 +8,12 @@ const obtenerServicios = async (req, res) => {
         const { _id: usuarioID, rol } = req.usuario;
 
         let servicios;
-        if(rol === "DUEÑO"){
+        if (rol === "ADMINISTRADOR") {
+            servicios = await Servicio.find()
+                .populate("dueno_id", "nombre apellido email telefono avatar_url")
+                .populate("cuidador_id", "nombre apellido email telefono avatar_url")
+                .populate("mascotas")
+        } else if(rol === "DUEÑO"){
             servicios = await Servicio.find({dueno_id: usuarioID})
                 .populate("cuidador_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas")

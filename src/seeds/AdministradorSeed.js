@@ -2,12 +2,6 @@ import Usuario from "../models/usuarios/Usuario.js";
 
 const crearAdmin = async () => {
     try {
-        const existe = await Usuario.findOne({ rol: "ADMINISTRADOR" });
-
-        if (existe) {
-            console.log("Ya existe un administrador");
-            return;
-        }
 
         const admin = new Usuario({
             rol: "ADMINISTRADOR",
