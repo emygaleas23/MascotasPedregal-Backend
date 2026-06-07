@@ -15,9 +15,9 @@ router.post("/login", loginUsuario);
 
 router.get("/perfil", verifyToken, detallesPerfil);
 
-router.patch("/perfil/:id", verifyToken, actualizarPerfil);
-router.patch("/perfil-foto/:id", verifyToken, actualizarFotoPerfil);
+router.patch("/perfil", verifyToken, actualizarPerfil);
+router.patch("/perfil-foto", verifyToken, actualizarFotoPerfil);
 
-router.put('/actualizar-password/:id',verifyToken,actualizarPassword)
+router.put('/actualizar-password',verifyToken,actualizarPassword)
 
 export default router;
