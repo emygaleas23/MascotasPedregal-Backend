@@ -1,4 +1,4 @@
-import { sendMailReestablecerPassword, sendMailRegistroUsuario, sendMailUsuarioActivado, sendMailUsuarioDesactivado } from "../../helpers/sendMail.js";
+import { sendMailRegistroUsuario, sendMailUsuarioActivado, sendMailUsuarioDesactivado } from "../../helpers/sendMail.js";
 import Usuario from "../../models/usuarios/Usuario.js";
 import Cuidador from "../../models/usuarios/Cuidador.js";
 import mongoose from "mongoose";
@@ -9,9 +9,9 @@ import Servicio from "../../models/servicios/Servicio.js";
 // REGISTRO DE USUARIO: 
 const registrarUsuario = async (req, res) => {
     try {
-        const { email, password, rol, nombre, apellido, telefono, fechaNacimiento } = req.body;
+        const { email, rol, nombre, apellido, telefono, fechaNacimiento } = req.body;
 
-        if (!email || !password || !rol || !nombre || !apellido || !telefono || !fechaNacimiento) {
+        if (!email || !rol || !nombre || !apellido || !telefono || !fechaNacimiento) {
             return res.status(400).json({ msg: "Todos los campos son obligatorios" });
         }
 
