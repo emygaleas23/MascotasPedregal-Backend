@@ -268,6 +268,10 @@ const actualizarMascota = async (req, res) => {
             mascotaActualizar.foto_principal = secure_url;
         }
 
+        if(descripcion){
+            mascotaActualizar.descripcion = descripcion.trim()
+        }
+
         await mascotaActualizar.save()
         res.status(200).json({msg:"Actualizaste la mascota con éxito", mascotaActualizar})
     }catch (error){
