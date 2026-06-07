@@ -31,7 +31,7 @@ const registroMascota = async(req, res) =>{
                 });
             }
         } else {
-            return res.status(400).json({msg: "No tienes permisos para registrar mascotas."})
+            return res.status(403).json({msg: "No tienes permisos para registrar mascotas."})
         }
 
         // 2. Validaciones básicas
@@ -124,7 +124,7 @@ const listarMascotas = async (req, res) => {
         }else if (req.usuario?.rol === "DUEÑO"){
             mascotas = await Mascota.find({owner_id: req.usuario._id})
         } else {
-            return res.status(400).json({msg: "No tienes permisos para ver mascotas"})
+            return res.status(403).json({msg: "No tienes permisos para ver mascotas"})
         }
         // Enviar respuesta
         res.status(200).json(mascotas)
@@ -139,7 +139,7 @@ const detalleMascota = async (req, res) => {
         const rol = req.usuario.rol
 
         if (!mongoose.Types.ObjectId.isValid(id)){
-            return res.status(404).json({msg:`El ID ${id} no es válido`});
+            return res.status(400).json({msg:`El ID ${id} no es válido`});
         }
         
         let mascota;
@@ -149,11 +149,11 @@ const detalleMascota = async (req, res) => {
         }else if(rol === "DUEÑO"){
             mascota = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
             if(mascota.owner_id._id.toString() !== req.usuario._id.toString()){
-                return res.status(400).json({msg:"No puedes ver una mascota que no te pertenece."})
+                return res.status(403).json({msg:"No puedes ver una mascota que no te pertenece."})
             }
         }
         else{
-            return res.status(404).json({msg:`No tienes permisos para ver esta mascota.`});
+            return res.status(403).json({msg:`No tienes permisos para ver esta mascota.`});
         }
 
         res.status(200).json(mascota)
@@ -168,7 +168,7 @@ const actualizarMascota = async (req, res) => {
         const {id} = req.params
         const rol = req.usuario.rol
 
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({msg:`El ID ${id} de la mascota no es válido`});
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:`El ID ${id} de la mascota no es válido`});
         if(!req.body || Object.keys(req.body).length === 0) return res.status(400).json({msg: "No se han enviado datos para actualizar."})
 
         let mascotaActualizar;
@@ -179,10 +179,10 @@ const actualizarMascota = async (req, res) => {
         }else if(rol === "DUEÑO"){
             mascotaActualizar = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
             if(mascotaActualizar.owner_id._id.toString() !== req.usuario._id.toString()){
-                return res.status(400).json({msg:"No puedes actualizar una mascota que no te pertenece."})
+                return res.status(403).json({msg:"No puedes actualizar una mascota que no te pertenece."})
             }
         }else{
-            return res.status(404).json({msg:`No tienes permisos para ver esta mascota.`});
+            return res.status(403).json({msg:`No tienes permisos para actualizar esta mascota.`});
         }
 
         const {nombre, tipo, raza, genero, tamano, color, fecha_nacimiento, descripcion, foto_principal} = req.body;
@@ -285,25 +285,25 @@ const actualizarDueno = async (req, res) => {
         const { nuevoDuenoID } = req.body;
 
         if(rol !== "ADMINISTRADOR"){
-            return res.status(400).json({msg:"No tienes permisos para actualizar el dueño de una mascota."})
+            return res.status(403).json({msg:"No tienes permisos para actualizar el dueño de una mascota."})
         }
 
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({msg:`El ID ${id} de la mascota no es válido`});
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:`El ID ${id} de la mascota no es válido`});
     
         if (!mongoose.Types.ObjectId.isValid(nuevoDuenoID)) {
-            return res.status(400).json({ message: "El ID del dueño no es válido" });
+            return res.status(400).json({ msg: "El ID del dueño no es válido" });
         }
     
         // Buscar mascota
         const mascota = await Mascota.findById(id);
         if (!mascota) {
-            return res.status(404).json({ message: "Mascota no encontrada" });
+            return res.status(404).json({ msg: "Mascota no encontrada" });
         }
 
         // Evitar mismo dueño
         if (mascota.owner_id.toString() === nuevoDuenoID) {
             return res.status(400).json({
-            message: "La mascota ya pertenece a este dueño",
+            msg: "La mascota ya pertenece a este dueño",
             });
         }
     
@@ -312,16 +312,16 @@ const actualizarDueno = async (req, res) => {
         const nuevoDueno = await Usuario.findById(nuevoDuenoID);
     
         if (!anteriorDueno){
-            return res.status(404).json({ message: "Dueño anterior no encontrado" });
+            return res.status(404).json({ msg: "Dueño anterior no encontrado" });
         }
         if (!nuevoDueno) {
-            return res.status(404).json({ message: "Nuevo dueño no encontrado" });
+            return res.status(404).json({ msg: "Nuevo dueño no encontrado" });
         }
     
         // Validar rol
         if (!nuevoDueno.rol.includes("DUEÑO")) {
             return res.status(400).json({
-            message: "El usuario seleccionado no es un dueño válido",
+            msg: "El usuario seleccionado no es un dueño válido",
             });
         }
     
@@ -341,7 +341,7 @@ const actualizarDueno = async (req, res) => {
         res.json({msg: "Dueño de la mascota actualizado correctamente"});
 
     } catch (error) {
-        res.status(500).json({message: `Error en el servidor - ${error}`});
+        res.status(500).json({msg: `Error en el servidor - ${error}`});
     }
 };
 
@@ -350,10 +350,10 @@ const eliminarMascota = async (req, res) => {
         const {id} = req.params
         const {_id: usuarioID, rol} = req.usuario
 
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({msg:`El ID ${id} de la mascota no es válido`});
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:`El ID ${id} de la mascota no es válido`});
         
         const mascota = await Mascota.findById(id)
-        if(!mascota) return res.status(400).json({msg:"No se ha encontrado la mascota."})
+        if(!mascota) return res.status(404).json({msg:"No se ha encontrado la mascota."})
 
         // Solo dueño propietario o admin
         if ( rol !== "ADMINISTRADOR" && mascota.owner_id.toString() !== usuarioID.toString()) {
@@ -396,10 +396,10 @@ const activarMascota = async (req, res) => {
             return res.status(403).json({ msg: "No tienes permisos para activar una mascota." });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({ msg: `El ID ${id} de la mascota no es válido` });
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ msg: `El ID ${id} de la mascota no es válido` });
         
         const mascota = await Mascota.findById(id);
-        if (!mascota) return res.status(400).json({ msg: "No se ha encontrado la mascota." });
+        if (!mascota) return res.status(404).json({ msg: "No se ha encontrado la mascota." });
 
         if (mascota.estado) {
             return res.status(400).json({ msg: "Esta mascota ya se encuentra activa" });

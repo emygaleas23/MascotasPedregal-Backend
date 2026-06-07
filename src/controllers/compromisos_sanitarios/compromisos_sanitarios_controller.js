@@ -16,13 +16,13 @@ const crearCompromiso = async (req, res) => {
 
         // Validar id mascota
         if (!mongoose.Types.ObjectId.isValid(mascota_id)){
-            return res.status(404).json({msg:"El ID de la mascota no es válido"});
+            return res.status(400).json({msg:"El ID de la mascota no es válido"});
         }
 
         // Validar que el usuario logueado sea el dueño de la mascota
         const mascota = await Mascota.findOne({_id: mascota_id, owner_id : usuarioID})
         if (!mascota){
-            return res.status(404).json({msg:"No eres dueño de esta mascota"})
+            return res.status(403).json({msg:"No eres dueño de esta mascota"})
         }
 
         
@@ -92,12 +92,12 @@ const listarCompromisos = async (req, res) => {
 
         const compromisos = await compromisoSanitario.find(filtro)
             .populate("mascota_id", "nombre tipo")
-            .sort({ fecha_proxima: 1 });
+            .sort({ proxima_fecha: 1 });
 
         if (compromisos.length === 0){
-            res.status(500).json({msg: "No existen compromisos registrados."});
+            return res.status(200).json({msg: "No existen compromisos registrados."});
         }
-        res.status(200).json(compromisos);
+        res.status(200).json({total: compromisos.length, compromisos});
     } catch (error) {
         res.status(500).json({msg: `Error en el servidor - ${error.message}`});
     }
@@ -114,7 +114,7 @@ const detalleCompromiso = async (req, res) => {
 
         // Validar id 
         if (!mongoose.Types.ObjectId.isValid(id)){
-            return res.status(404).json({msg:"El ID no es válido"});
+            return res.status(400).json({msg:"El ID no es válido"});
         }
 
         const compromiso = await compromisoSanitario.findById(id).populate("mascota_id")
@@ -142,6 +142,8 @@ const completarCompromiso = async (req, res) => {
         if(rol !== "DUEÑO"){
             return res.status(403).json({ msg: "No tienes los permisos necesarios" });
         }
+
+        if (!mongoose.Types,ObjectId.isValid(id)) return res.status(400).json({msg:"ID inválido"})
 
         const compromiso = await compromisoSanitario.findById(id);
         if (!compromiso) {

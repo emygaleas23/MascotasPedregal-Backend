@@ -199,7 +199,7 @@ const listarAnunciosPropios = async (req, res) => {
 const detalleAnuncio = async (req, res) => {
     try{
         const { anuncio_id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(404).json({ msg: "ID inválido" });
+        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(400).json({ msg: "ID inválido" });
 
         const anuncio = await Anuncio.findById(anuncio_id).populate("mascotas");
         if (!anuncio) return res.status(404).json({ msg: "Anuncio no encontrado" });
@@ -220,7 +220,7 @@ const actualizarAnuncio = async (req, res) => {
         }
 
         if (!mongoose.Types.ObjectId.isValid(anuncio_id)) {
-            return res.status(404).json({ msg: "ID inválido" });
+            return res.status(400).json({ msg: "ID inválido" });
         }
 
         const anuncio = await Anuncio.findById(anuncio_id);
@@ -243,10 +243,8 @@ const actualizarAnuncio = async (req, res) => {
 
         const postulaciones = await Postulacion.findOne({ anuncio_id });
 
-        if (postulaciones && postulaciones.estado !== "PENDIENTE") {
-            return res.status(400).json({
-                msg: "No puedes modificar un anuncio con postulaciones"
-            });
+        if (postulaciones) {
+            return res.status(400).json({msg: "No puedes modificar un anuncio con postulaciones"});
         }
         
         // DESCRIPCIÓN
@@ -363,7 +361,9 @@ const eliminarAnuncio = async (req, res) => {
     try{
         const { anuncio_id } = req.params;
         const { _id: duenoID } = req.usuario;
-
+        
+        if(!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(400).json({msg:"ID inválido"})
+        
         const anuncio = await Anuncio.findById(anuncio_id);
         if (!anuncio) return res.status(404).json({ msg: "Anuncio no encontrado" });
 

@@ -217,7 +217,7 @@ const comprobarTokenPassword = async (req, res) => {
 
         const usuario = await Usuario.findOne({ token });
         if (usuario?.token !== token)
-        return res.status(404).json({ msg: "Lo sentimos, no se puede validar la cuenta" });
+        return res.status(400).json({ msg: "Lo sentimos, no se puede validar la cuenta" });
 
         res.status(200).json({ msg: "Cuenta confirmada, ya puedes crear tu nueva contraseña" });
 
@@ -238,7 +238,7 @@ const crearNuevoPassword = async (req, res) => {
         }
 
         if (password !== confirmpassword)
-            return res.status(404).json({ msg: "Las contraseñas no coinciden" });
+            return res.status(400).json({ msg: "Las contraseñas no coinciden" });
 
         // Validación contraseña
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;
@@ -247,7 +247,7 @@ const crearNuevoPassword = async (req, res) => {
         }
         
         const usuario = await Usuario.findOne({ token });
-        if (!usuario) return res.status(404).json({ msg: "No se puede validar la cuenta" });
+        if (!usuario) return res.status(400).json({ msg: "No se puede validar la cuenta" });
 
         usuario.token = null;
         usuario.password = password;
@@ -363,7 +363,7 @@ const actualizarFotoPerfil = async (req, res) => {
     try {
         const id =req.usuario._id;
         // Validar ID
-        if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(404).json({msg:`ID inválido ${id}`})
+        if(!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:`ID inválido ${id}`})
 
         // IMAGEN
         const imagenFile = req.files?.imagen;
@@ -420,7 +420,7 @@ const actualizarPassword = async (req, res) => {
 
         const verificarPassword = await usuario.matchPassword(passwordactual)
 
-        if (!verificarPassword) return res.status(404).json({msg: `Lo sentimos, la contraseña actual no es correcta`})
+        if (!verificarPassword) return res.status(400).json({msg: `Lo sentimos, la contraseña actual no es correcta`})
 
         // Validación contraseña
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{16,}$/;

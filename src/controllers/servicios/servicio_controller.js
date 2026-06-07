@@ -27,7 +27,7 @@ const obtenerServicios = async (req, res) => {
             return res.status(200).json({ msg: "No tienes servicios asignados", servicios: [] });
         }
 
-        res.status(200).json(servicios);
+        res.status(200).json({total: servicios.length,servicios});
     } catch(error){
         res.status(500).json({ msg: `Error en el servidor - ${error}` })
     }
@@ -53,22 +53,20 @@ const detalleServicio = async (req, res) => {
         const esDueno = servicio.dueno_id.toString() === usuarioID.toString();
         const esCuidador = servicio.cuidador_id.toString() === usuarioID.toString();
 
+        if(!esDueno && !esCuidador) return res.status(403).json({msg:"No tienes permisos para ver este servicio"})
+
         let servicios;
         if(rol === "DUEÑO"){
-            servicios = await Servicio.findById(servicio_id)
+            servicioDetalle = await Servicio.findById(servicio_id)
                 .populate("cuidador_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas")
         } else if (rol === "CUIDADOR"){
-            servicios = await Servicio.findById(servicio_id)
+            servicioDetalle = await Servicio.findById(servicio_id)
                 .populate("dueno_id", "nombre apellido email telefono avatar_url")
                 .populate("mascotas");
         }else{ return res.status(403).json({ msg: "No tienes permisos para ver servicios" });}
 
-        if (servicios.length === 0) {
-            return res.status(200).json({ msg: "No tienes servicios asignados", servicios: [] });
-        }
-
-        res.status(200).json(servicios);
+        res.status(200).json(servicioDetalle);
     } catch(error){
         res.status(500).json({ msg: `Error en el servidor - ${error}` })
     }
@@ -99,7 +97,6 @@ const actualizarEstadoServicio = async (req, res) => {
         const esCuidador = servicio.cuidador_id._id.toString() === usuarioID.toString();
 
         if (!esDueno && !esCuidador) {
-            console.log(usuarioID);
             return res.status(403).json({ msg: "No tienes permisos para modificar este servicio" });
         }
 
@@ -121,7 +118,7 @@ const actualizarEstadoServicio = async (req, res) => {
         }
 
         // Evitar cancelar un servicio que ya ha empezado
-        if((estado === "CANCELADO" && servicio.estado === "ACTIVO") || (estado === "CANCELADO" && servicio.estado === "FINALIZADO")){
+        if(estadoServicio === "CANCELADO" && ["ACTIVO", "FINALIZADO"].includes(servicio.estado)){
             return res.status(400).json({msg: "No puedes cancelar un servicio que ya ha empezado"})
         }
 

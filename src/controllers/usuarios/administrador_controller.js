@@ -139,9 +139,9 @@ const listarUsuarios = async (req, res) => {
 const detalleUsuario = async(req, res) => {
     try{
         const {id} = req.params
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({msg:"ID inválido"})
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:"ID inválido"})
         const usuario = await Usuario.findById(id).select("-createdAt -updatedAt -__v -password -token")
-        if (!usuario) return res.status(400).json({msg:`Usuario con id ${id} no encontrado`})
+        if (!usuario) return res.status(404).json({msg:`Usuario con id ${id} no encontrado`})
         res.status(200).json(usuario)
     }catch(error){
         res.status(500).json({msg: `Error en el servidor - ${error}`})
@@ -153,10 +153,14 @@ const actualizarUsuario = async (req, res) =>{
     try{
         const {id} = req.params
         const {nombre, apellido, telefono, fechaNacimiento, verificado } = req.body
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ msg: "ID inválido" });
+        }
 
         const usuario = await Usuario.findById(id);
 
-        if (!usuario) return res.status(400).json({msg:`Usuario con id ${id} no encontrado`})
+        if (!usuario) return res.status(404).json({msg:`Usuario con id ${id} no encontrado`})
 
         if (typeof verificado === 'boolean') {
             usuario.verificado = verificado;
@@ -224,6 +228,10 @@ const eliminarUsuario = async (req, res) => {
     try {
         const { id } = req.params;
 
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ msg: "ID inválido" });
+        }
+
         const usuario = await Usuario.findById(id);
         if (!usuario) return res.status(404).json({ msg: "Usuario no encontrado" });
 
@@ -288,7 +296,10 @@ const eliminarUsuario = async (req, res) => {
 const activarUsuario = async (req,res) => {
     try{
         const {id} = req.params
-
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ msg: "ID inválido" });
+        }
         const usuario = await Usuario.findById(id);
         if (!usuario) return res.status(404).json({ msg: "Usuario no encontrado" });
 

@@ -14,7 +14,7 @@ const postularAnuncio = async (req, res) => {
         const { tarifa_por_hora } = req.body;
 
         if(rol !== "CUIDADOR"){
-            return res.status(400).json({msg:"No tienes los permisos para postularte."})
+            return res.status(403).json({msg:"No tienes los permisos para postularte."})
         }
 
         const cuidador = await Cuidador.findOne({usuario: cuidador_id})
@@ -25,7 +25,7 @@ const postularAnuncio = async (req, res) => {
 
         // Anuncio
         const {anuncio_id} = req.params
-        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(404).json({msg:"ID de anuncio inválido"})
+        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(400).json({msg:"ID de anuncio inválido"})
         
         const anuncio = await Anuncio.findById(anuncio_id)
         if(!anuncio) return res.status(404).json({msg:"No se encontró el anuncio"})
@@ -85,12 +85,12 @@ const listarPostulacionesPorAnuncio = async (req, res) => {
         const { _id: duenoID, rol } = req.usuario;
 
         if(rol !== "DUEÑO"){
-            return res.status(400).json({msg:"No tienes permiso para ver las postulaciones de este anuncio."})
+            return res.status(403).json({msg:"No tienes permiso para ver las postulaciones de este anuncio."})
         }
 
         // Anuncio
         const {anuncio_id} = req.params
-        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(404).json({msg:"ID de anuncio inválido"})
+        if (!mongoose.Types.ObjectId.isValid(anuncio_id)) return res.status(400).json({msg:"ID de anuncio inválido"})
         
         const anuncio = await Anuncio.findById(anuncio_id)
         if(!anuncio) return res.status(404).json({msg:"No se encontró el anuncio"})

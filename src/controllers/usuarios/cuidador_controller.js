@@ -10,21 +10,21 @@ const actualizarPerfil = async (req, res) => {
         
         if(!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg: "ID de usuario no válido"})
         if(rol !== "CUIDADOR"){
-            return res.status(400).json({msg:"No tienes los permisos necesarios para actualizar el perfil 'Cuidador'"})
+            return res.status(403).json({msg:"No tienes los permisos necesarios para actualizar el perfil 'Cuidador'"})
         }
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ msg: "Debes enviar datos para actualizar" });
         }
 
-        const cuidador = await Cuidador.findOne({usuario: id})
+        let cuidador = await Cuidador.findOne({usuario: id})
         if(!cuidador){
-            const perfilCuidador = new Cuidador({
-                usuario: req.usuario._id,
+            cuidador = new Cuidador({
+                usuario: id,
                 tarifa_hora:0,
                 servicios_ofrecidos: [],
                 biografia: "",
             })
-            await perfilCuidador.save()
+            await cuidador.save()
         }
 
         if(biografia !== undefined){
@@ -124,7 +124,7 @@ const actualizarPortada = async (req, res) =>{
     try{
         const id = req.usuario?._id;
         // Validar ID
-        if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(404).json({msg:`ID inválido ${id}`})
+        if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(400).json({msg:`ID inválido ${id}`})
 
         // IMAGEN
         const imagenFile = req.files?.portada_url;

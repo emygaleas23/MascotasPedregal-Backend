@@ -185,17 +185,14 @@ const editarResena = async (req, res) => {
             });
         }
 
-        if (calificacion) {
-            if (!Number.isInteger(Number(calificacion))) {
-                return res.status(400).json({
-                    msg: "La calificación debe ser un número entero."
-                });
+        if (calificacion !== undefined) {
+            const calificacionNumero = Number(calificacion);
+            if (!Number.isInteger(calificacionNumero)) {
+                return res.status(400).json({msg: "La calificación debe ser un número entero."});
             }
 
-            if (calificacion < 1 || calificacion > 5) {
-                return res.status(400).json({
-                    msg: "La calificación debe estar entre 1 y 5."
-                });
+            if (calificacionNumero < 1 || calificacionNumero > 5) {
+                return res.status(400).json({msg: "La calificación debe estar entre 1 y 5."});
             }
 
             resena.calificacion = calificacion;
