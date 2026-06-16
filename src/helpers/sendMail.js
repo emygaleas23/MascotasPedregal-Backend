@@ -4,7 +4,7 @@ import emailTemplate from "./emailTemplate.js";
 // --- USUARIOS ---
 
 const sendMailRegistro = (userMail, rol, token) => {
-    const confirmationUrl = `${process.env.URL_FRONTEND}confirm-email/${token}`;
+    const confirmationUrl = `${process.env.URL_FRONTEND}confirm/${token}`;
     return sendMail(
         userMail,
         "Confirma tu cuenta - PetConnect",
@@ -34,7 +34,7 @@ const sendMailRegistro = (userMail, rol, token) => {
 };
 
 const sendMailRegistroUsuario = (userMail, rol, password, token) => {
-    const confirmationUrl = `${process.env.URL_FRONTEND}confirm-email/${token}`;
+    const confirmationUrl = `${process.env.URL_FRONTEND}confirm/${token}`;
     return sendMail(
         userMail,
         "Confirma tu cuenta - PetConnect",
