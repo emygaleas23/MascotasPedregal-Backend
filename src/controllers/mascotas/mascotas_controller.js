@@ -148,7 +148,7 @@ const detalleMascota = async (req, res) => {
             if(!mascota) return res.status(404).json({msg:`No existe la mascota ${id}`});
         }else if(rol === "DUEÑO"){
             mascota = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
-            if(mascota.owner_id._id.toString() !== req.usuario._id.toString()){
+            if(mascota.owner_id.toString() !== req.usuario._id.toString()){
                 return res.status(403).json({msg:"No puedes ver una mascota que no te pertenece."})
             }
         }
@@ -178,7 +178,7 @@ const actualizarMascota = async (req, res) => {
             mascotaActualizar = mascota;
         }else if(rol === "DUEÑO"){
             mascotaActualizar = await Mascota.findById(id).select("-createdAt -updatedAt -__v")
-            if(mascotaActualizar.owner_id._id.toString() !== req.usuario._id.toString()){
+            if(mascotaActualizar.owner_id.toString() !== req.usuario._id.toString()){
                 return res.status(403).json({msg:"No puedes actualizar una mascota que no te pertenece."})
             }
         }else{
