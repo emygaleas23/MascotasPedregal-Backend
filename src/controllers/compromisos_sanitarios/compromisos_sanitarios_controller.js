@@ -143,7 +143,7 @@ const completarCompromiso = async (req, res) => {
             return res.status(403).json({ msg: "No tienes los permisos necesarios" });
         }
 
-        if (!mongoose.Types,ObjectId.isValid(id)) return res.status(400).json({msg:"ID inválido"})
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({msg:"ID inválido"})
 
         const compromiso = await compromisoSanitario.findById(id);
         if (!compromiso) {
